@@ -31,7 +31,6 @@ namespace Common
             return ans;
         }
 
-        // TODO: TEST
         // Should return either attacker, defender or empty
         // Assuming that if attacker is movable its movement is legal
         public static ICell Handle(Piece attacker, ICell defender)
