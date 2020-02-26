@@ -6,6 +6,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "CLIClient", "CLIClient\CLIC
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GameServer", "GameServer\GameServer.csproj", "{B68B9693-B80C-4F0D-A3E8-919E146FBFE0}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestConflictHandler", "UnitTestConflictHandler\UnitTestConflictHandler.csproj", "{B771F34E-48C6-40FC-B79E-775AA5C5F2DA}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -24,5 +26,9 @@ Global
 		{B68B9693-B80C-4F0D-A3E8-919E146FBFE0}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{B68B9693-B80C-4F0D-A3E8-919E146FBFE0}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{B68B9693-B80C-4F0D-A3E8-919E146FBFE0}.Release|Any CPU.Build.0 = Release|Any CPU
+		{B771F34E-48C6-40FC-B79E-775AA5C5F2DA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{B771F34E-48C6-40FC-B79E-775AA5C5F2DA}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{B771F34E-48C6-40FC-B79E-775AA5C5F2DA}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{B771F34E-48C6-40FC-B79E-775AA5C5F2DA}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 EndGlobal
