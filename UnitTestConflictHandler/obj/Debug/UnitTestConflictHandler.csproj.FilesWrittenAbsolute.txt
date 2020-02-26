@@ -1,0 +1,8 @@
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/obj/Debug/.NETFramework,Version=v4.7.AssemblyAttribute.cs
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/bin/Debug/UnitTestConflictHandler.pdb
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/bin/Debug/UnitTestConflictHandler.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/obj/Debug/UnitTestConflictHandler.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/obj/Debug/UnitTestConflictHandler.pdb
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/bin/Debug/nunit.framework.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/bin/Debug/Common.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestConflictHandler/bin/Debug/Common.pdb

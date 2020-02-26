@@ -1,5 +1,7 @@
-﻿using System.ComponentModel;
+﻿using System;
+using System.ComponentModel;
 using System.Reflection;
+using System.Runtime.InteropServices;
 using System.Security.Permissions;
 
 namespace Common
@@ -66,10 +68,7 @@ namespace Common
     {
         private Ownership owner;
 
-        public Rank GetRank()
-        {
-            throw new System.NotImplementedException();
-        }
+        public abstract Rank GetRank();
 
         protected Piece(Ownership owner)
         {
@@ -89,12 +88,12 @@ namespace Common
 
     public abstract class MovablePiece : Piece
     {
-        // #TODO: IMPLEMENT ME 
-        // TO BE OVERRIDDEN BY SCOUT TYPE
         protected MovablePiece(Ownership owner) : base(owner)
         {
         }
 
+        // #TODO: IMPLEMENT ME 
+        // TO BE OVERRIDDEN BY SCOUT TYPE
         public Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             throw new System.NotImplementedException();
@@ -120,7 +119,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Flag;
         }
@@ -132,7 +131,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Spy;
         }
@@ -144,15 +143,15 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Scout;
         }
 
         // TODO: Scout walks in a different manner, handle that
-        public override Position[] GetValidMoves(CellSampler cs, Position pos)
+        public Position[] GetValidMoves(CellSampler cs, Position pos)
         {
-            return System.NotImplementedException();
+            throw new System.NotImplementedException();
         }
     }
 
@@ -162,7 +161,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Miner;
         }
@@ -174,7 +173,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Sergeant;
         }
@@ -186,7 +185,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Lieutenant;
         }
@@ -198,7 +197,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Captin;
         }
@@ -210,7 +209,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Major;
         }
@@ -222,7 +221,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Colonel;
         }
@@ -234,7 +233,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.General;
         }
@@ -246,7 +245,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Marshal;
         }
@@ -258,7 +257,7 @@ namespace Common
         {
         }
 
-        public Rank GetRank()
+        public override Rank GetRank()
         {
             return Rank.Bomb;
         }
