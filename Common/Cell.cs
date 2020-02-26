@@ -70,7 +70,7 @@ namespace Common
 
         public abstract Rank GetRank();
 
-        protected Piece(Ownership owner)
+        public Piece(Ownership owner)
         {
             this.owner = owner;
         }
