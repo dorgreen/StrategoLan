@@ -1,0 +1,42 @@
+	
+1 Solution
+3 Projects: Server, Client, Shared
+
+Server:
+	Board state
+	Action Handeling
+	Notify Clients ; Game ended
+	Move Validation
+
+
+GameManager:
+	Board, Players, turn
+	game_loop: while not gameover, waitforvaliduserinput(player who's turn), attampt_move
+	isGameOver
+		
+
+Board:
+	State: matrix of objects [Cell: water, empty, piece]
+	Cell is an interface
+	
+
+	ConflictHandler: given two Pieces/Cells <attacker, defender> ask for outcome (attacker,defender or empty) (functional) [Static Class, "functional"]
+	CellSampler: given ownership and a position return {empty, water, friend, enemy, invalid}
+
+
+Piece: only data is Ownership (red,blue) ; otherwise functional
+	getvalidmoves(CellSampler, Position)->[Positions] ; asks the board's CellSampler for data
+	getrank()-> int (enum)
+	getownership()->int
+
+Cell: abstract;
+	Water
+	Empty
+	Piece
+		self.get_rank()
+		self.get_ownership()
+		self.get_moves(CellSampler, Position)
+
+		Movable
+			has default get_moves() ; to be overridden by Scout
+		Immovable
