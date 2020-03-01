@@ -21,7 +21,7 @@ namespace Common
         Miner,
         Sergeant,
         Lieutenant,
-        Captin,
+        Captain,
         Major,
         Colonel,
         General,
@@ -191,15 +191,15 @@ namespace Common
         }
     }
 
-    public class Captin : MovablePiece
+    public class Captain : MovablePiece
     {
-        public Captin(Ownership owner) : base(owner)
+        public Captain(Ownership owner) : base(owner)
         {
         }
 
         public override Rank GetRank()
         {
-            return Rank.Captin;
+            return Rank.Captain;
         }
     }
 
