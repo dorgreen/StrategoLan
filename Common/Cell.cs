@@ -39,6 +39,31 @@ namespace Common
     {
         Position[] GetValidMoves(CellSampler cs, Position pos);
         Ownership GetOwnership();
+        ICell Sample(Ownership asker);
+    }
+
+    // "Dummy" class represent Enemy Cells for client
+    // TODO: maybe throw exception on Sample()?
+    public class Enemy : StaticPiece
+    {
+        private Ownership owner;
+
+        public Enemy(Ownership owner)
+        {
+            this.owner = owner;
+        }
+
+        public Enemy(Piece p)
+        {
+            Ownership owner = p.GetOwnership();
+            if(owner == Ownership.Board) throw new InvalidCastException("Can't Enemy from boardpiece");
+            this.owner = owner;
+        }
+        
+        public new Ownership GetOwnership()
+        {
+            return this.owner;
+        }
     }
 
     // For Water and Empty types
@@ -53,6 +78,11 @@ namespace Common
         public Ownership GetOwnership()
         {
             return Ownership.Board;
+        }
+
+        public ICell Sample(Ownership asker)
+        {
+            return this;
         }
     }
 
@@ -83,6 +113,11 @@ namespace Common
         public Ownership GetOwnership()
         {
             return this.owner;
+        }
+
+        public ICell Sample(Ownership asker)
+        {
+            return asker == this.owner ? this : Enemy(this);
         }
     }
 

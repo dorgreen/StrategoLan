@@ -33,10 +33,12 @@ namespace Common
 
         // Should return either attacker, defender or empty
         // Assuming that if attacker is movable its movement is legal
+        // TODO: Rewrite as conditioned Switch
+        
         public static ICell Handle(Piece attacker, ICell defender)
         {
             if (attacker.GetOwnership() == defender.GetOwnership() || attacker.GetOwnership() == Ownership.Board ||
-                !(attacker is MovablePiece) || defender is WaterCell)
+                !(attacker is MovablePiece) || defender is WaterCell || defender is Enemy)
                 throw new PieceConflictHandlerException("Illegal Attacker or Defender");
 
             if (defender is EmptyCell)
