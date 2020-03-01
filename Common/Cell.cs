@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.ComponentModel;
 using System.Reflection;
 using System.Runtime.InteropServices;
@@ -28,43 +29,14 @@ namespace Common
         Marshal,
         Bomb
     }
-
-    public struct Position
-    {
-        public int x;
-        public int y;
-    }
-
+    
     public interface ICell
     {
         Position[] GetValidMoves(CellSampler cs, Position pos);
         Ownership GetOwnership();
         ICell Sample(Ownership asker);
     }
-
-    // "Dummy" class represent Enemy Cells for client
-    // TODO: maybe throw exception on Sample()?
-    public class Enemy : StaticPiece
-    {
-        private Ownership owner;
-
-        public Enemy(Ownership owner)
-        {
-            this.owner = owner;
-        }
-
-        public Enemy(Piece p)
-        {
-            Ownership owner = p.GetOwnership();
-            if(owner == Ownership.Board) throw new InvalidCastException("Can't Enemy from boardpiece");
-            this.owner = owner;
-        }
-        
-        public new Ownership GetOwnership()
-        {
-            return this.owner;
-        }
-    }
+    
 
     // For Water and Empty types
     public abstract class StaticPiece : ICell
@@ -93,6 +65,24 @@ namespace Common
     public class EmptyCell : StaticPiece
     {
     }
+    
+    // "Dummy" class represent Enemy Cells for client
+    // TODO: maybe throw exception on Sample()?
+    public class Enemy : StaticPiece
+    {
+        private Ownership owner;
+
+        public Enemy(Ownership owner)
+        {
+            if (owner == Ownership.Board) throw new InvalidCastException("Can't Enemy from boardpiece");
+            this.owner = owner;
+        }
+
+        public new Ownership GetOwnership()
+        {
+            return this.owner;
+        }
+    }
 
     public abstract class Piece : ICell
     {
@@ -117,7 +107,14 @@ namespace Common
 
         public ICell Sample(Ownership asker)
         {
-            return asker == this.owner ? this : Enemy(this);
+            ICell ans;
+            if (this.GetOwnership() == asker)
+                ans = this;
+            else
+            {
+                ans = new Enemy(this.owner);
+            }
+            return ans;
         }
     }
 
@@ -127,11 +124,19 @@ namespace Common
         {
         }
 
-        // #TODO: IMPLEMENT ME 
+        // #TODO: TEST ME 
         // TO BE OVERRIDDEN BY SCOUT TYPE
         public Position[] GetValidMoves(CellSampler cs, Position pos)
         {
-            throw new System.NotImplementedException();
+            var ans = new List<Position>();
+            foreach (var d in Enum.GetValues(typeof(Directions)))
+            {
+                Position candidate = new Position(pos, (Directions)d);
+                ICell CellInPosition = cs.SampleLocation(pos, this.GetOwnership());
+                if(CellInPosition is EmptyCell || CellInPosition is Enemy) ans.Add(candidate);
+            }
+
+            return ans.ToArray();
         }
     }
 
@@ -184,9 +189,25 @@ namespace Common
         }
 
         // TODO: Scout walks in a different manner, handle that
-        public Position[] GetValidMoves(CellSampler cs, Position pos)
+        public new Position[] GetValidMoves(CellSampler cs, Position pos)
         {
-            throw new System.NotImplementedException();
+            var ans = new List<Position>();
+            foreach (var d in Enum.GetValues(typeof(Directions)))
+            {
+                Position candidate = new Position(pos, (Directions)d);
+                ICell CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
+
+                while (CellInPosition is EmptyCell)
+                {
+                    ans.Add(candidate);
+                    candidate = new Position(candidate, (Directions)d);
+                    CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
+                }
+                
+                if(CellInPosition is EmptyCell || CellInPosition is Enemy) ans.Add(candidate);
+            }
+
+            return ans.ToArray();
         }
     }
 

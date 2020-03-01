@@ -17,7 +17,7 @@ namespace Common
             ICell ans;
             try
             {
-                ans = State[pos.x][pos.y];
+                ans = State[pos.X][pos.Y];
             }
             catch
             {
