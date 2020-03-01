@@ -1,0 +1,8 @@
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/obj/Debug/.NETFramework,Version=v4.7.AssemblyAttribute.cs
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/bin/Debug/UnitTestPosition.pdb
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/bin/Debug/UnitTestPosition.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/obj/Debug/UnitTestPosition.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/obj/Debug/UnitTestPosition.pdb
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/bin/Debug/nunit.framework.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/bin/Debug/Common.dll
+/Users/dorgreen/RiderProjects/StrategoLan/UnitTestPosition/bin/Debug/Common.pdb
