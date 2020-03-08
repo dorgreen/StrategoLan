@@ -204,7 +204,7 @@ namespace Common
                     CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
                 }
                 
-                if(CellInPosition is EmptyCell || CellInPosition is Enemy) ans.Add(candidate);
+                if(CellInPosition is Enemy) ans.Add(candidate);
             }
 
             return ans.ToArray();

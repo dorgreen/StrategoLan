@@ -12,13 +12,13 @@ namespace Common
     public class Board : CellSampler
     {
         protected int DefaultBoardSize = 10;
-        protected ICell[][] State;
+        protected ICell[,] State;
         protected ICell CellAtPos(Position pos)
         {
             ICell ans;
             try
             {
-                ans = State[pos.X][pos.Y];
+                ans = State[pos.X , pos.Y];
             }
             catch
             {
