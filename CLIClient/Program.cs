@@ -17,18 +17,16 @@ namespace CLIClient
             client.Connect(host: "127.0.0.1", port: 11112);
 
             NetIncomingMessage message;
-            int x = 0;
-            while (x < 1000)
+            // TODO: while(true) Should be replaced with Application.Idle handler!
+            while(true)
             {
                 if ((message = client.ReadMessage()) != null)
                 {
                     Console.WriteLine(String.Format("Message: {0}", message.ToString()));
-                    Console.WriteLine(String.Format("Data: {0}", message.PeekInt32()));
+                    Console.WriteLine(String.Format("Data: {0}", message.PeekString()));
                 }
-                
                 Console.WriteLine("sleep..");
-                Thread.Sleep(300);
-                x++;
+                Thread.Sleep(100);
             }
 
             Console.WriteLine("wake up, close all..");
