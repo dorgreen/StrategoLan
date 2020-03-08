@@ -10,7 +10,7 @@ namespace GameServer
     {
         public void Reset()
         {
-            this.State = new ICell[DefaultBoardSize][DefaultBoardSize];
+            this.State = new ICell[DefaultBoardSize,DefaultBoardSize];
             InitBoardSystemCells();
             return;
         }
@@ -24,12 +24,13 @@ namespace GameServer
             // try:
             //     put the result at end position
             //    put an empty at start position
+            // Notify whoever needs to know
             throw new NotImplementedException("ApplyValidMove");
         }
 
         public Object BoardToPacket(Ownership player)
         {
-            // icell.sample the whole board according to player
+            // icell.sample() the whole board according to player
             // flip positions for player2 if needed
             // wrap in packet
             throw new NotImplementedException("BoardToPacket");
