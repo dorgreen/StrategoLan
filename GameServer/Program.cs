@@ -1,86 +1,12 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Data;
-using System.Linq;
 using System.Threading;
 using System.Xml;
 using Lidgren.Network;
-using Common;
 
 namespace GameServer
 {
-
-    internal class Players
-    {
-        private NetConnection[] _Players;
-        public Players()
-        {
-            this._Players = new NetConnection[2];
-        }
-
-        // Should return a message
-        public NetOutgoingMessage SignUp(NetConnection user, NetOutgoingMessage msg)
-        {
-            lock (_Players)
-            {
-                if (_Players.Contains(user)){
-                    msg.Write("AlreadyConnected!");
-                    return msg;
-                }
-
-                int player_index = 0;
-                while (player_index < _Players.Length)
-                {
-                    if (_Players[player_index] == null)
-                    {
-                        _Players[player_index] = user;
-                        msg.Write(((Ownership)(player_index+1)).ToString());
-                        Console.WriteLine(String.Format("Signed user {0} to Player {1}", user.ToString(), ((Ownership)(player_index+1)).ToString()));
-                        break;
-                    }
-                    player_index++;
-                }
-                if(player_index == _Players.Length)
-                    msg.Write("Two Players already connected!");
-            }
-
-            return msg;
-        }
-
-        public NetOutgoingMessage SignOut(NetConnection user, NetOutgoingMessage msg)
-        {
-            lock (_Players)
-            {
-                int player_index = 0;
-                while (player_index < _Players.Length)
-                {
-                    if (_Players[player_index] == user)
-                    {
-                        _Players[player_index] = null;
-                        msg.Write("Sign out: "+((Ownership)(player_index+1)).ToString());
-                        Console.WriteLine(String.Format("Signed out user {0} to Player {1}", user.ToString(), ((Ownership)(player_index+1)).ToString()));
-                        break;
-                    }
-                    player_index++;
-                }
-                if(player_index == _Players.Length)
-                    msg.Write("Can't Signout, No such user!");
-
-                return msg;
-            }
-        }
-
-        public NetConnection GetConnection(Ownership player)
-        {
-            lock (_Players)
-            {
-                return _Players[(int) player - 1];   
-            }
-        }
-
-
-    }
-
     internal class Program
     {
 
@@ -94,14 +20,17 @@ namespace GameServer
             // TODO: Get port from constant or from commandline args
             var config = new NetPeerConfiguration("StrategoLAN") {Port = 11112};
             var server = new NetServer(config);
-            Players players = new Players();
-
-            server.Start();
+            var game = new Game(server);
+            
+            game.server.Start();
+            
             
             NetIncomingMessage message;
             NetOutgoingMessage response;
+            
 
             // TODO: while(true) Should be replaced with Application.Idle handler!
+            // TOOD: Test logging out
             while (true)
             {
                 if((message = server.ReadMessage()) == null) continue;
@@ -121,9 +50,9 @@ namespace GameServer
 
                         response = server.CreateMessage();
                         if (status == NetConnectionStatus.Connected)
-                            response = players.SignUp(message.SenderConnection, response);
+                            response = game.players.SignUp(message.SenderConnection, response);
                         else if (status == NetConnectionStatus.Disconnecting)
-                            response = players.SignOut(message.SenderConnection, response);
+                            response = game.players.SignOut(message.SenderConnection, response);
 
                         server.SendMessage(response, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                         break;
