@@ -1,0 +1,13 @@
+/GameServer/bin/Debug/
+/GameServer/obj/Debug/
+/Common/bin/Debug/
+/Common/obj/Debug/
+/CLIClient/bin/Debug/
+/CLIClient/obj/Debug/
+/.idea/
+/.vscode/
+/UnitTestConflictHandler/bin/Debug/
+/UnitTestConflictHandler/obj/Debug/
+/UnitTestPosition/bin/Debug/
+/UnitTestPosition/obj/Debug/
+/packages/
