@@ -108,7 +108,8 @@ namespace Common
         public ICell Sample(Ownership asker)
         {
             ICell ans;
-            if (this.GetOwnership() == asker)
+            
+            if (this.GetOwnership() == asker || this.GetOwnership() == Ownership.Board)
                 ans = this;
             else
             {
@@ -126,13 +127,13 @@ namespace Common
 
         // #TODO: TEST ME 
         // TO BE OVERRIDDEN BY SCOUT TYPE
-        public Position[] GetValidMoves(CellSampler cs, Position pos)
+        public new Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             var ans = new List<Position>();
             foreach (var d in Enum.GetValues(typeof(Directions)))
             {
                 Position candidate = new Position(pos, (Directions)d);
-                ICell CellInPosition = cs.SampleLocation(pos, this.GetOwnership());
+                ICell CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
                 if(CellInPosition is EmptyCell || CellInPosition is Enemy) ans.Add(candidate);
             }
 
@@ -188,7 +189,10 @@ namespace Common
             return Rank.Scout;
         }
 
-        // TODO: Scout walks in a different manner, handle that
+        // Scout walks in a different manner:
+        // can walk howmany empty spots in one direction
+        // cannot skip enemies or water pieces
+        // can attack an enemy within X empty spaces in one direction 
         public new Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             var ans = new List<Position>();
