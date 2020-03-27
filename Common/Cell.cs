@@ -7,6 +7,8 @@ using System.Security.Permissions;
 
 namespace Common
 {
+    
+    
     public enum Ownership
     {
         Board,
@@ -35,6 +37,60 @@ namespace Common
         Position[] GetValidMoves(CellSampler cs, Position pos);
         Ownership GetOwnership();
         ICell Sample(Ownership asker);
+    }
+
+    class ICellTools
+    {
+        public static ICell ICellFromRank(Rank rank, Ownership owner)
+        {
+            ICell ans;
+            switch (rank)
+            {
+                case Rank.Flag:
+                    ans = new Flag(owner);
+                    break;
+                case Rank.Spy:
+                    ans = new Spy(owner);
+                    break;
+                case Rank.Scout:
+                    ans = new Scout(owner);
+                    break;
+                case Rank.Miner:
+                    ans = new Miner(owner);
+                    break;
+                case Rank.Sergeant:
+                    ans = new Sergeant(owner);
+                    break;
+                case Rank.Lieutenant:
+                    ans = new Lieutenant(owner);
+                    break;
+                case Rank.Captain:
+                    ans = new Captain(owner);
+                    break;
+                case Rank.Major:
+                    ans = new Major(owner);
+                    break;
+                case Rank.Colonel:
+                    ans = new Colonel(owner);
+                    break;
+                case Rank.General:
+                    ans = new General(owner);
+                    break;
+                case Rank.Marshal:
+                    ans = new Marshal(owner);
+                    break;
+                case Rank.Bomb:
+                    ans = new Bomb(owner);
+                    break;
+                default:
+                    ans = new EmptyCell();
+                    break;
+            }
+           
+            return ans;
+        }
+        
+        
     }
     
 
@@ -322,4 +378,5 @@ namespace Common
             return Rank.Bomb;
         }
     }
+    
 }

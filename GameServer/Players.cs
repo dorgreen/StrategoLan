@@ -76,6 +76,18 @@ namespace GameServer
             }
         }
 
+        public Ownership GetPlayerFromConnection(NetConnection user)
+        {
+            if(_Players[0] == user)
+            {
+                return Ownership.FirstPlayer;
+            }
+            else if (_Players[1] == user)
+            {
+                return Ownership.SecondPlayer;
+            }
+            else return Ownership.Board;
+        }
         public override string ToString()
         {
             String ans = "";
