@@ -1,0 +1,41 @@
+--------
+Game's /State/ should be new subclasses of Game with one method: HandlePacket()
+Using the State Design Pattern
+--------
+
+
+Server Loop:
+
+	 ==> Should be with server.SendDiscoveryResponse()
+	Wait for connection:
+		Connected:
+			-> "You are playerN"
+		Wait for N-1:
+			-> "Await N-1"
+		Two Connected:
+			-> "Press Start"
+	Wait for Start:
+		Wait for start on both players
+			-> reply with "Await start"
+			-> reply with "Waiting player"
+
+	Wait for Board Init:
+		wait for 1
+		wait for 2
+			-> Send both the complete board
+
+
+---------------------------------------------
+$ Take care of these later... $
+
+	Game Loop:
+		Wait for input from playerN
+			-> Don't accept any other game input
+			-> If action is illegal don't operate / reply error
+			-> if action is legal: perform, send new board to both
+			-> If game over: break to GAMEOVER loop
+			-> Wait for input from player1-N
+
+		Game Over:
+			-> Send both player info on that
+			-> Wait for start

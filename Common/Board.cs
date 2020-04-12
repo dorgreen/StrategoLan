@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.Design;
 using System.Linq;
 using System.Xml.Schema;
 
@@ -14,7 +15,7 @@ namespace Common
     public class Board : CellSampler
     {
         
-        static readonly Rank[] DefaultPiecesRanks =
+        public static readonly Rank[] DefaultPiecesRanks =
         {
             Rank.Flag, Rank.Spy, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout,
             Rank.Scout, Rank.Miner, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Sergeant, Rank.Sergeant,
@@ -24,7 +25,7 @@ namespace Common
             Rank.Bomb
         };
 
-        public static List<ICell> GetDefaultPiceces(Ownership player)
+        public static List<ICell> GetDefaultPieces(Ownership player)
         {
             if (player == Ownership.Board)
             {

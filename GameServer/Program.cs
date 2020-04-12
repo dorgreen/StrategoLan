@@ -25,7 +25,6 @@ namespace GameServer
             
             game.server.Start();
             
-            
             NetIncomingMessage message;
             
             // TODO: while(true) Should be replaced with Application.Idle handler!
@@ -33,7 +32,8 @@ namespace GameServer
             while (true)
             {
                 if((message = server.ReadMessage()) == null) continue;
-                
+                else game.state.HandlePacket(message);
+
             }
             
             // int x = 0;

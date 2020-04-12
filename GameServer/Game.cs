@@ -1,4 +1,5 @@
 using System;
+using System.Linq;
 using System.Xml;
 using Common;
 using Lidgren.Network;
@@ -13,7 +14,7 @@ namespace GameServer
         
         
         protected Game game;
-        public abstract void HandlePacket(NetIncomingMessage msg);
+        public abstract void HandlePacket(NetIncomingMessage message);
 
         public GameState(Game game)
         {
@@ -42,7 +43,7 @@ namespace GameServer
                 case NetIncomingMessageType.WarningMessage:
                 case NetIncomingMessageType.VerboseDebugMessage:
                     string text = message.ReadString();
-                    Console.WriteLine(String.Format("Got msg:{0}", text));
+                    Console.WriteLine(String.Format("Got message:{0}", text));
                     break;
                 case NetIncomingMessageType.StatusChanged:
                     NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
@@ -76,12 +77,71 @@ namespace GameServer
         public AwaitBoardInitializationState(Game game) : base(game)
         {
             // Send both players a notice to init their boards
+            NetOutgoingMessage msg = game.server.CreateMessage();
+            msg.Write("Waiting for user to place pieces on board");
+            msg.Write("TESTANOTHERSTRING");
+            game.server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
+
             this.boardinit = new[] {false, false};
         }
         
-        public override void HandlePacket(NetIncomingMessage msg)
+        public override void HandlePacket(NetIncomingMessage message)
         {
-            throw new NotImplementedException();
+            if(message == null) return;
+            NetOutgoingMessage response = game.server.CreateMessage();
+             
+            switch (message.MessageType)
+            {
+                case NetIncomingMessageType.DebugMessage:
+                case NetIncomingMessageType.ErrorMessage:
+                case NetIncomingMessageType.WarningMessage:
+                case NetIncomingMessageType.VerboseDebugMessage:
+                    string text = message.ReadString();
+                    Console.WriteLine(String.Format("Got message:{0}", text));
+                    break;
+                case NetIncomingMessageType.StatusChanged when (NetConnectionStatus)message.ReadByte() == NetConnectionStatus.Disconnecting:
+                    NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
+                    string reason = message.ReadString();
+                    Console.WriteLine(NetUtility.ToHexString(message.SenderConnection.RemoteUniqueIdentifier) + " " + status + ": " + reason);
+                    response = game.players.SignOut(message.SenderConnection, response);
+                    game.server.SendMessage(response, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                    break;
+                case NetIncomingMessageType.Data:
+                    DataPacket data = new DataPacket();
+                    message.ReadAllFields(data);
+                    switch (data.header)
+                    {
+                        case "BoardInit":
+                            Ownership player = game.players.GetPlayerFromConnection(message.SenderConnection);
+                            if (game.board.InitBoardFromUser((ICell[,]) data.data, player))
+                            {
+                                this.boardinit[(int) player - 1] = true;
+                                response.WriteAllFields(new DataPacket("BoardInit", "Success! wait..."));
+                            }
+                            else
+                            {
+                                response.WriteAllFields(new DataPacket("Error", "InitBoard"));
+                            }
+
+                            game.server.SendMessage(response, message.SenderConnection,
+                                NetDeliveryMethod.ReliableOrdered);
+                            
+                            if (boardinit.All(val => val))
+                            {
+                                game.state = new AwaitPlayerStartState(game);
+                            }
+                            break;
+                        
+                        default:
+                            Console.WriteLine("Unexpected data packet: HEADER: {0}  | DATA: {1}", data.header, data.data.ToString());
+                            response.WriteAllFields(new DataPacket("Error", "Unexpected packet"));
+                            break;
+                    }
+
+                    break;
+                default:
+                    break;
+            }
         }
     }
 
@@ -92,12 +152,14 @@ namespace GameServer
         public AwaitPlayerStartState(Game game) : base(game)
         {
             // Send both players a notice to press "Start Game"
+            NetOutgoingMessage msg = game.server.CreateMessage();
+            msg.WriteAllFields(new DataPacket("Waiting for user press START", ""));
             this.playerstart = new[] {false, false};   
         }
         
        // When player i sends Start, tell player i to ack
        // When both players sent start, Move to state GameWaitFirstPlayerMoveState
-        public override void HandlePacket(NetIncomingMessage msg)
+        public override void HandlePacket(NetIncomingMessage message)
         {
             throw new NotImplementedException();
         }
@@ -111,7 +173,7 @@ namespace GameServer
         {
         }
         
-        public override void HandlePacket(NetIncomingMessage msg)
+        public override void HandlePacket(NetIncomingMessage message)
         {
             throw new NotImplementedException();
         }
@@ -123,7 +185,7 @@ namespace GameServer
         {
         }
         
-        public override void HandlePacket(NetIncomingMessage msg)
+        public override void HandlePacket(NetIncomingMessage message)
         {
             throw new NotImplementedException();
         }
@@ -135,7 +197,7 @@ namespace GameServer
         {
         }
         
-        public override void HandlePacket(NetIncomingMessage msg)
+        public override void HandlePacket(NetIncomingMessage message)
         {
             throw new NotImplementedException();
         } 
@@ -148,7 +210,7 @@ namespace GameServer
     public class Game
     {
         public Players players;
-        private ServerBoard board;
+        public ServerBoard board;
         public GameState state;
         public NetServer server;
 

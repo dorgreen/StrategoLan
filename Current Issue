@@ -1,0 +1,6 @@
+Outgoing messages from server via Observer Pattern?
+
+Current Issue:
+	wrapping custom message with DataPacket(String header, object data) doesn't work: it will not create these packets. 
+		-> just "write string" and then "write .." for more data?
+		-> create an object for each? bla!
