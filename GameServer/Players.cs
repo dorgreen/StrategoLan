@@ -94,22 +94,22 @@ namespace GameServer
             NetConnection conn = GetConnection(Ownership.FirstPlayer);
             if (conn != null)
             {
-                ans.Concat(String.Format("FirstPlayer: {0} status: {1}  |", conn.ToString(), conn.Status));
+                ans = String.Concat(ans, String.Format("FirstPlayer: {0} status: {1}  |", conn.ToString(), conn.Status));
             }
             else
             {
-                ans.Concat("Awaiting FirstPlayer..  |");
+                ans = String.Concat(ans, "Awaiting FirstPlayer..  |");
             }
             
             conn = GetConnection(Ownership.SecondPlayer);
 
             if (conn != null)
             {    
-                ans.Concat(String.Format("SecondPlayer: {0} status: {1}", conn.ToString(), conn.Status));
+                ans = String.Concat(ans, String.Format("SecondPlayer: {0} status: {1}", conn.ToString(), conn.Status));
             }
             else
             {
-                ans.Concat("Awaiting SecondPlayer..");
+                ans = String.Concat(ans, "Awaiting SecondPlayer..");
             }
             
             return ans;

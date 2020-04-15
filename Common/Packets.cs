@@ -1,22 +1,70 @@
 using System;
 using System.Runtime.InteropServices;
+using Lidgren.Network;
 
 namespace Common
 {
-    public class DataPacket
+
+    public enum PacketHeader
     {
-        public string header;
-        public object data;
-
-
-        public DataPacket(string header, object data)
+        BoardPacket
+    }
+    
+    public interface Packet
         {
-            this.header = header;
-            this.data = data;
+             void PackIntoNetMessage(NetOutgoingMessage msg);
+             Packet PopulateFromNetMessage(NetIncomingMessage msg);
+        }
+    
+    // To be used by both client and server for their respective messages
+    // TODO: IMPLEMENT FLYWHEEL
+    public class PacketFactory{
+        public static Packet ReadNetMessage(NetIncomingMessage msg)
+        {
+            // Switch \ use dict over message types 
+            // use the appropriate constructor PopulateFromNetMessage(NetIncomingMessage msg)
+            throw new NotImplementedException("ReadNetMessage");
+        }
+    }
+
+    // Used by server to update client of new board state after turns
+    // Used by client to send initial position of pieces as selected by user
+    public class BoardPacket : Packet
+    {
+        public BoardPacket(ICell[,] boardState)
+        {
+            BoardState = boardState;
         }
 
-        public DataPacket()
+        private ICell[,] BoardState;
+
+        public BoardPacket()
         {
+            BoardState = null;
+        }
+
+        public void PackIntoNetMessage(NetOutgoingMessage msg)
+        {
+            msg.Write((byte)PacketHeader.BoardPacket);
+            string data = Newtonsoft.Json.JsonConvert.SerializeObject(BoardState);
+            msg.Write(data.Length);
+            msg.Write(data);
+            
+            throw new NotImplementedException();
+        }
+
+        public Packet PopulateFromNetMessage(NetIncomingMessage msg)
+        {
+            if (msg.ReadByte() != (Byte)PacketHeader.BoardPacket)
+            {
+                return null;
+            }
+
+            int length = msg.ReadInt32();
+            string json_data = msg.ReadString();
+            BoardState = Newtonsoft.Json.JsonConvert.DeserializeObject<ICell[,]>(json_data);
+            return this;
+            
         }
     }
 }
