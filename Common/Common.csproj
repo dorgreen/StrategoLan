@@ -49,6 +49,8 @@
     <Compile Include="Board.cs" />
     <Compile Include="Cell.cs" />
     <Compile Include="ConflictHandler.cs" />
+    <Compile Include="CustomJSONConverters.cs" />
+    <Compile Include="PacketFactory.cs" />
     <Compile Include="Packets.cs" />
     <Compile Include="Position.cs" />
     <Compile Include="Properties\AssemblyInfo.cs" />

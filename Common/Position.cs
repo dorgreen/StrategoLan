@@ -15,6 +15,12 @@ namespace Common
             _y = ypos;
         }
 
+        public void copy_from_other(Position other)
+        {
+            this._x = other.X;
+            this._y = other._y;
+        }
+
         public Position(Position p, Directions dir)
         {
             int x = p.X;
