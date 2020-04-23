@@ -1,14 +1,13 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.ComponentModel;
+using System.Linq;
 using System.Reflection;
 using System.Runtime.InteropServices;
 using System.Security.Permissions;
 
 namespace Common
 {
-    
-    
     public enum Ownership
     {
         Board,
@@ -31,12 +30,20 @@ namespace Common
         Marshal,
         Bomb
     }
-    
-    public interface ICell
+
+    public abstract class ICell
     {
-        Position[] GetValidMoves(CellSampler cs, Position pos);
-        Ownership GetOwnership();
-        ICell Sample(Ownership asker);
+        public abstract Position[] GetValidMoves(CellSampler cs, Position pos);
+        public abstract Ownership GetOwnership();
+
+        public abstract ICell Sample(Ownership asker);
+
+        // Format as : { "ICell" : {"t":INSERT_TYPE_HERE, "o":INSERT_OWNER_HERE } }
+        public string ToString()
+        {
+            return "{\"ICell\":{" +
+                   String.Format("t:{0},o:{1}", this.GetType().ToString(), this.GetOwnership().ToString()) + "}}";
+        }
     }
 
     class ICellTools
@@ -83,32 +90,30 @@ namespace Common
                     ans = new Bomb(owner);
                     break;
                 default:
-                    ans = new EmptyCell();
+                    ans = new EmptyCell(Ownership.Board);
                     break;
             }
-           
+
             return ans;
         }
-        
-        
     }
-    
+
 
     // For Water and Empty types
     public abstract class StaticPiece : ICell
     {
-        public Position[] GetValidMoves(CellSampler cs, Position pos)
+        public override Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             // TODO: maybe return only current position 'pos'
             return new Position[0];
         }
 
-        public Ownership GetOwnership()
+        public override Ownership GetOwnership()
         {
             return Ownership.Board;
         }
 
-        public ICell Sample(Ownership asker)
+        public override ICell Sample(Ownership asker)
         {
             return this;
         }
@@ -116,12 +121,26 @@ namespace Common
 
     public class WaterCell : StaticPiece
     {
+        public WaterCell(Ownership owner) : base()
+        {
+        }
+
+        public WaterCell() : base()
+        {
+        }
     }
 
     public class EmptyCell : StaticPiece
     {
+        public EmptyCell(Ownership owner) : base()
+        {
+        }
+
+        public EmptyCell() : base()
+        {
+        }
     }
-    
+
     // "Dummy" class represent Enemy Cells for client
     // TODO: maybe throw exception on Sample()?
     public class Enemy : StaticPiece
@@ -151,26 +170,27 @@ namespace Common
             this.owner = owner;
         }
 
-        public Position[] GetValidMoves(CellSampler cs, Position pos)
+        public override Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             throw new System.NotImplementedException();
         }
 
-        public Ownership GetOwnership()
+        public override Ownership GetOwnership()
         {
             return this.owner;
         }
 
-        public ICell Sample(Ownership asker)
+        public override ICell Sample(Ownership asker)
         {
             ICell ans;
-            
+
             if (this.GetOwnership() == asker || this.GetOwnership() == Ownership.Board)
                 ans = this;
             else
             {
                 ans = new Enemy(this.owner);
             }
+
             return ans;
         }
     }
@@ -188,9 +208,9 @@ namespace Common
             var ans = new List<Position>();
             foreach (var d in Enum.GetValues(typeof(Directions)))
             {
-                Position candidate = new Position(pos, (Directions)d);
+                Position candidate = new Position(pos, (Directions) d);
                 ICell CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
-                if(CellInPosition is EmptyCell || CellInPosition is Enemy) ans.Add(candidate);
+                if (CellInPosition is EmptyCell || CellInPosition is Enemy) ans.Add(candidate);
             }
 
             return ans.ToArray();
@@ -254,17 +274,17 @@ namespace Common
             var ans = new List<Position>();
             foreach (var d in Enum.GetValues(typeof(Directions)))
             {
-                Position candidate = new Position(pos, (Directions)d);
+                Position candidate = new Position(pos, (Directions) d);
                 ICell CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
 
                 while (CellInPosition is EmptyCell)
                 {
                     ans.Add(candidate);
-                    candidate = new Position(candidate, (Directions)d);
+                    candidate = new Position(candidate, (Directions) d);
                     CellInPosition = cs.SampleLocation(candidate, this.GetOwnership());
                 }
-                
-                if(CellInPosition is Enemy) ans.Add(candidate);
+
+                if (CellInPosition is Enemy) ans.Add(candidate);
             }
 
             return ans.ToArray();
@@ -378,5 +398,4 @@ namespace Common
             return Rank.Bomb;
         }
     }
-    
 }
