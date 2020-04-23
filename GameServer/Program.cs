@@ -32,7 +32,7 @@ namespace GameServer
             while (true)
             {
                 if((message = server.ReadMessage()) == null) continue;
-                else game.state.HandlePacket(message);
+                else game.state.HandleMessage(message);
 
             }
             

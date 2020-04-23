@@ -7,6 +7,12 @@ namespace GameServer
 {
     public class Players
     {
+        public static Ownership OtherPlayer(Ownership player)
+        {
+            if(player == Ownership.Board) throw new ArgumentException("Can't OtherPlayer from Ownership.Board");
+            return player == Ownership.FirstPlayer ? Ownership.SecondPlayer : Ownership.FirstPlayer;
+        }
+        
         private NetConnection[] _Players;
         public Players()
         {
@@ -87,6 +93,14 @@ namespace GameServer
                 return Ownership.SecondPlayer;
             }
             else return Ownership.Board;
+        }
+
+        public NetConnection GetOtherUserConnection(NetConnection given_user)
+        {
+            var this_user = GetPlayerFromConnection(given_user);
+            return this_user == Ownership.FirstPlayer
+                ? GetConnection(Ownership.SecondPlayer)
+                : GetConnection(Ownership.FirstPlayer);
         }
         public override string ToString()
         {

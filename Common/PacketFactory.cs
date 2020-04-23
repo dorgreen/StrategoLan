@@ -16,7 +16,7 @@ namespace Common
             this.flywheel = new Dictionary<PacketHeader, Packet>();
         }
 
-        private Packet GetPacketInstance(PacketHeader header)
+        public Packet GetPacketInstance(PacketHeader header)
         {
             Packet packet = null;
             if (this.flywheel.ContainsKey(header))

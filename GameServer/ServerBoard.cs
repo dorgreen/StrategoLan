@@ -1,10 +1,7 @@
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Resources;
-using System.Runtime.InteropServices;
-using System.Security.AccessControl;
+
 using Common;
 
 namespace GameServer
@@ -18,6 +15,39 @@ namespace GameServer
             return;
         }
 
+
+        public Ownership CheckGameOver()
+        {
+            bool[] flags = new bool[2] {false, false};
+            bool[] has_moveable = new bool[2] {false, false};
+
+            foreach (var cell in State)
+            {
+                switch (cell)
+                {
+                    case Flag f:
+                        flags[(int) f.GetOwnership() - 1] = true;
+                        break;
+                    case MovablePiece p when p.GetValidMoves(this, PositionOfCell(p)).Length > 0:
+                        has_moveable[(int) p.GetOwnership() - 1] = true;
+                        break;
+                }
+
+                // lazy stop when possible..
+                if (flags.All(x => x) && has_moveable.All(x => x))
+                {
+                    return Ownership.Board;
+                }
+            }
+
+            if (flags[(int) Ownership.FirstPlayer - 1] && has_moveable[(int) Ownership.FirstPlayer - 1])
+            {
+                return Ownership.FirstPlayer;
+            }
+            else return Ownership.SecondPlayer;
+
+        }
+        
         // TODO: Change signature?
         // TODO: TEST
         public Boolean ApplyValidMove(Position start, Position end)
@@ -56,11 +86,10 @@ namespace GameServer
             return true;
         }
 
-        public Object BoardToPacket(Ownership player)
+        public ICell[,] BoardFilterToUser(Ownership player)
         {
             // icell.sample() the whole board according to player
             // flip positions for player2 if needed
-            // wrap in packet
             var ans = new ICell[DefaultBoardSize, DefaultBoardSize];
 
             for (int col = 0; col < DefaultBoardSize; col++)
@@ -77,18 +106,18 @@ namespace GameServer
                             );
                             break;
                         default:
-                            throw new ArgumentException("BoardToPacket for board user");
+                            throw new ArgumentException("BoardFilterToUser for board user");
                     }
                 }
             }
-            
-            throw new NotImplementedException("BoardToPacket");
+
+            return ans;
         }
 
         public Boolean InitBoardFromUser(ICell[,] input, Ownership player)
         {
             // make sure size is correct
-            if (input.Length != 20)
+            if (input.Length != DefaultPiecesRanks.Length)
             {
                 return false;
             }
@@ -114,7 +143,7 @@ namespace GameServer
 
             // make sure all pieces that should be there - are there
             var intersect = list.Intersect(DefaultPiecesRanks);
-            if (intersect.Count() != 20)
+            if (intersect.Count() != DefaultPiecesRanks.Length)
             {
                 return false;
             }
