@@ -164,12 +164,50 @@ namespace Common
                     ans = new Bomb(owner);
                     break;
                 default:
-                    throw new NotImplementedException("ICellFromString: "+identifier);
+                    throw new NotImplementedException("ICellFromString: " + identifier);
             }
+
             return ans;
         }
+
+        public static bool IsStringICell(string to_parse)
+        {
+            var tokens = to_parse.Split(",".ToCharArray(), 2);
+            Ownership owner;
+            switch (tokens[1])
+            {
+                case "Board":
+                case "FirstPlayer":
+                case "SecondPlayer":
+                    break;
+                default:
+                    return false;
+            }
+            
+            switch (tokens[0])
+            {
+                case "Common.EmptyCell":
+                case "Common.Enemy":
+                case "Common.WaterCell":
+                case "Common.Flag":
+                case "Common.Spy":
+                case "Common.Scout":
+                case "Common.Miner":
+                case "Common.Sergeant":
+                case "Common.Lieutenant":
+                case "Common.Captain":
+                case "Common.Major":
+                case "Common.Colonel":
+                case "Common.General":
+                case "Common.Marshal":
+                case "Common.Bomb":
+                    return true;
+                default:
+                    return false;
+            }
+        }
     }
-    
+
 
 
     // For Water and Empty types
@@ -214,7 +252,6 @@ namespace Common
     }
 
     // "Dummy" class represent Enemy Cells for client
-    // TODO: maybe throw exception on Sample()?
     public class Enemy : StaticPiece
     {
         private Ownership owner;

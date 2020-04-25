@@ -66,7 +66,7 @@ namespace Common
             ICell attacker = CellAtPos(start);
             ICell defender = CellAtPos(end);
             if (attacker is null || attacker.GetOwnership() == Ownership.Board || defender is null ||
-                defender.GetOwnership() == attacker.GetOwnership())
+                defender.GetOwnership() == attacker.GetOwnership() || defender is WaterCell)
             {
                 return false;
             }
