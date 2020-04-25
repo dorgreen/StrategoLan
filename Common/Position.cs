@@ -15,10 +15,26 @@ namespace Common
             _y = ypos;
         }
 
+        public static Position PositionFromIndex(int index, int row_length)
+        {
+            return new Position(xpos: index % row_length , ypos: index / row_length);
+        }
+
+        public void Flip(int board_size)
+        {
+            _x = board_size - 1 - _x;
+            _y = board_size - 1 - _y;
+        }
+
         public void copy_from_other(Position other)
         {
             this._x = other.X;
             this._y = other._y;
+        }
+
+        public int to_board_index(int default_board_size)
+        {
+            return _x + default_board_size * _y;
         }
 
         public Position(Position p, Directions dir)

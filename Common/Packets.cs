@@ -1,7 +1,8 @@
 using System;
+using System.Linq;
 using System.Runtime.InteropServices;
 using Lidgren.Network;
-using Newtonsoft.Json;
+using Json.Net;
 
 namespace Common
 {
@@ -17,7 +18,6 @@ namespace Common
     public enum ClientGameStates
     {
         Error,
-        IninitalConnection,
         WaitForBoard,
         WaitForStart,
         YourMove,
@@ -32,19 +32,21 @@ namespace Common
              void Recycle();
         }
     
-    // To be used by both client and server for their respective messages
-    // TODO: IMPLEMENT FLYWHEEL
 
     // Used by server to update client of new board state after turns
     // Used by client to send initial position of pieces as selected by user
     public class BoardPacket : Packet
     {
-        public BoardPacket(ICell[,] boardState)
+        public BoardPacket(ICell[] boardState)
         {
-            BoardState = boardState;
+            SetBoardState(boardState);
         }
 
-        public ICell[,] BoardState;
+        public string[] BoardState;
+
+        public void SetBoardState(ICell[] ICellBoardToSet){
+            this.BoardState = ICellBoardToSet.Select(x => x.ToString()).ToArray();
+        } 
 
         public BoardPacket()
         {
@@ -59,14 +61,8 @@ namespace Common
         public void PackIntoNetMessage(NetOutgoingMessage msg)
         {
             msg.Write((byte)PacketHeader.BoardPacket);
-            var settings = new JsonSerializerSettings();
-            settings.ObjectCreationHandling = ObjectCreationHandling.Replace;
-            // TODO: testing only, should replace with singleton for JSONConvertICell
-            settings.Converters.Add(new JSONConvertICell());
-            string data = Newtonsoft.Json.JsonConvert.SerializeObject(BoardState, settings);
-            msg.Write(data.Length);
-            msg.Write(data);
-            
+            var encoded = Json.Net.JsonNet.Serialize(BoardState);
+            msg.Write(encoded);
             return;
         }
 
@@ -76,18 +72,9 @@ namespace Common
             {
                 return null;
             }
-
-            int length = msg.ReadInt32();
             string json_data = msg.ReadString();
-            
-            // TODO: testing only, should replace with singleton for JSONConvertICell
-            var settings = new JsonSerializerSettings();
-            settings.Converters.Add(new JSONConvertICell());
-            settings.ObjectCreationHandling = ObjectCreationHandling.Replace;
-            
-            BoardState = Newtonsoft.Json.JsonConvert.DeserializeObject<ICell[,]>(json_data, settings);
+            this.BoardState = Json.Net.JsonNet.Deserialize<string[]>(json_data);            
             return this;
-            
         }
     }
 

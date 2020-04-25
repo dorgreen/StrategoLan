@@ -108,36 +108,29 @@ namespace GameServer
                     break;
                 case NetIncomingMessageType.Data:
                     Packet incoming_packet = game.packetfactory.ReadNetMessage(message);
-                    // TODO: DEAL WITH THAT WHEN ICell SERIALIZATION WORKS
-                    // mark the array and when both are true, do game.SendBoardToUsers() and move to next state
-                    
-                    
-                    // if type if is BoardPacket:
-                    // Ownership player = game.players.GetPlayerFromConnection(message.SenderConnection);
-                    // if (game.board.InitBoardFromUser((ICell[,]) data.data, player))
-                    // {
-                    //     this.boardinit[(int) player - 1] = true;
-                    //     response.WriteAllFields(new DataPacket("BoardInit", "Success! wait..."));
-                    // }
-                    // else
-                    // {
-                    //     response.WriteAllFields(new DataPacket("Error", "InitBoard"));
-                    // }
-                    //
-                    // game.server.SendMessage(response, message.SenderConnection,
-                    //     NetDeliveryMethod.ReliableOrdered);
-                    //         
-                    // if (boardinit.All(val => val))
-                    // {
-                    //     game.state = new AwaitPlayerStartState(game);
-                    // }
-                    
-                    // if other type:
-                    // Console.WriteLine("Unexpected data packet: HEADER: {0}  | DATA: {1}", data.header, data.data.ToString());
-                    // response.WriteAllFields(new DataPacket("Error", "Unexpected packet"));
+                    switch (incoming_packet)
+                    {
+                        case BoardPacket bp:
+                            Ownership player = game.players.GetPlayerFromConnection(message.SenderConnection);
+                            if (game.board.InitBoardFromUser(bp.BoardState, player))
+                            {
+                                this.boardinit[(int) player - 1] = true;
+                            }
+                            else
+                            {
+                                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.Error, "Illegal board sent by user"), message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                            }
+                            if (boardinit[0] && boardinit[1])
+                            {
+                                game.state = new AwaitPlayerStartState(game);
+                                return;
+                            }
+                            break;
+                        default:
+                            game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.Error, "Unexpected packet. Waiting for user to send board"), message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                            break;
+                    }
 
-                    break;
-                default:
                     break;
             }
         }
@@ -189,7 +182,9 @@ namespace GameServer
                     return;
                 
                 default:
-                    // TODO: SEND PACKET OF ERROR
+                    var error_msg = game.CreateStatusMessage(ClientGameStates.WaitForStart,
+                        "Unrecognized Request. Waiting for player to start...");
+                    game.server.SendMessage(error_msg, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                     break;
             }
             
@@ -207,6 +202,8 @@ namespace GameServer
         {
             this.player = player;
             
+            game.SendBoardToUsers();
+            
             // Let player know we are waiting
             var this_player_message = game.CreateStatusMessage(ClientGameStates.YourMove, info: "");
             game.server.SendMessage(this_player_message, game.players.GetConnection(player),
@@ -214,7 +211,7 @@ namespace GameServer
 
             // Let other player know what's going on
             var other_player_message = game.CreateStatusMessage(ClientGameStates.WaitOtherPlayerMove, info: "");
-            game.server.SendMessage(other_player_message, game.players.GetOtherUserConnection(player),
+            game.server.SendMessage(other_player_message, game.players.GetConnection(Players.OtherPlayer(player)),
                 NetDeliveryMethod.ReliableOrdered);
             
             game.server.FlushSendQueue();
@@ -222,7 +219,7 @@ namespace GameServer
 
         public override void HandleMessage(NetIncomingMessage message)
         {
-            // TODO: HANDLE ME!
+            // TODO: Safely handle other messages
             if(message.MessageType != NetIncomingMessageType.Data) return;
 
             Packet packet = game.packetfactory.ReadNetMessage(message);
@@ -231,11 +228,16 @@ namespace GameServer
                 game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.Error, "Wait for other player to play"), message.SenderConnection, NetDeliveryMethod.Unknown);
                 return;
             }
-            // TODO: IF USER IS SecondPlayer, FLIP COORDINANTES!!
+            
 
             switch (packet)
             {
                 case AttemptMovePacket movePacket:
+                    if (player == Ownership.SecondPlayer)
+                    {
+                        movePacket.origin.Flip(Board.DefaultBoardSize);
+                        movePacket.dest.Flip(Board.DefaultBoardSize);    
+                    }
                     if (game.board.VerifyMove(movePacket.origin, movePacket.dest))
                     {
                         ICell attacker = game.board.SampleLocation(movePacket.origin, player);
@@ -287,10 +289,14 @@ namespace GameServer
 
                         else
                         {
-                            var newState = (player == Ownership.FirstPlayer)
-                                ? new GameWaitSecondPlayerMoveState(game)
-                                : new GameWaitSecondPlayerMoveState(game);
-                            game.state = newState;
+                            if (player == Ownership.FirstPlayer)
+                            {
+                                game.state = new GameWaitSecondPlayerMoveState(game);
+                            }
+                            else
+                            {
+                                game.state = new GameWaitFirstPlayerMoveState(game);
+                            }
                         }
                     }
                     else
@@ -351,7 +357,6 @@ namespace GameServer
         public ServerBoard board;
         public GameState state;
         public NetServer server;
-        // TODO: probably shouldn't expose packet factory like that 
         public PacketFactoryFlyWheel packetfactory;
 
         public NetOutgoingMessage CreateStatusMessage(ClientGameStates state, string info)
@@ -400,37 +405,35 @@ namespace GameServer
         public void Reset()
         {
             this.board = new ServerBoard();
-            // TODO: Maybe some other state according to Client?
             this.state = new AwaitBoardInitializationState(this);
         }
 
-        public void PrintState()
+        public void PrintState(bool verbose = false)
         {
             
-            // Console.WriteLine("GameState: {0}", this.status.ToString());
-            // // TODO: Add "if verbose"
-            // switch (this.status)
-            // {
-            //     case GameStatus.AwaitConnection:
-            //         Console.WriteLine(this.players.ToString());
-            //         break;
-            //     case GameStatus.AwaitBoardInitialization:
-            //         Console.WriteLine("FirstPlayer: {0}, SecondPlayer: {1}", this.boardinit);
-            //         break;
-            //     case GameStatus.AwaitPlayerStart:
-            //         Console.WriteLine("FirstPlayer: {0}, SecondPlayer: {1}", this.playerstart);
-            //         break;
-            //     case GameStatus.GameOver:
-            //         Console.WriteLine("Winner is: NOTYETIMPLEMENTED");
-            //         break;
-            //     case GameStatus.GameWaitFirstPlayerMove:
-            //     case GameStatus.GameWaitSecondPlayerMove:
-            //         Console.WriteLine("No more info");
-            //         break;
-            //     default:
-            //         Console.WriteLine("Unexpected status");
-            //         break;
-            // }
+            Console.WriteLine("GameState: {0}", this.state.ToString());
+            if(!verbose) return;
+            switch (this.state)
+            {
+                case AwaitConnectionState a:
+                    Console.WriteLine("connected player: {0}" ,this.players.ToString());
+                    break;
+                case AwaitBoardInitializationState a:
+                    Console.WriteLine("FirstPlayer: {0}, SecondPlayer: {1}", a.boardinit);
+                    break;
+                case AwaitPlayerStartState a:
+                    Console.WriteLine("FirstPlayer: {0}, SecondPlayer: {1}", a.playerstart);
+                    break;
+                case GameOverState go:
+                    Console.WriteLine("Winner is: {0}", this.board.CheckGameOver().ToString());
+                    break;
+                case WaitMove wm:
+                    Console.WriteLine("Waiting for Player to make a move");
+                    break;
+                default:
+                    Console.WriteLine("Unexpected status");
+                    break;
+            }
         }
         
         

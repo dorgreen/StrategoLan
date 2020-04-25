@@ -8,7 +8,6 @@ namespace Common
 {
     public interface CellSampler
     {
-        Position PositionOfCell(ICell cell);
         ICell SampleLocation(Position pos, Ownership player);
     }
     
@@ -38,15 +37,15 @@ namespace Common
             return new List<ICell>(ans);
             
         }
-        
-        protected int DefaultBoardSize = 10;
-        protected ICell[,] State;
+
+        public const int DefaultBoardSize = 10;
+        protected ICell[] State;
         protected ICell CellAtPos(Position pos)
         {
             ICell ans;
             try
             {
-                ans = State[pos.X , pos.Y];
+                ans = State[pos.to_board_index(DefaultBoardSize)];
             }
             catch
             {
@@ -56,12 +55,6 @@ namespace Common
             return ans;
         }
 
-        //TODO: IMPLEMENT!
-        public Position PositionOfCell(ICell cell)
-        {
-            throw new NotImplementedException("Board.PositionOfCell");
-        }
-        
         public ICell SampleLocation(Position pos, Ownership player)
         {
             ICell cell = CellAtPos(pos);

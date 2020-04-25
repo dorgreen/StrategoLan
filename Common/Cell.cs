@@ -38,15 +38,13 @@ namespace Common
 
         public abstract ICell Sample(Ownership asker);
 
-        // Format as : { "ICell" : {"t":INSERT_TYPE_HERE, "o":INSERT_OWNER_HERE } }
         public string ToString()
         {
-            return "{\"ICell\":{" +
-                   String.Format("t:{0},o:{1}", this.GetType().ToString(), this.GetOwnership().ToString()) + "}}";
+            return String.Format("{0},{1}", this.GetType().ToString(), this.GetOwnership().ToString());
         }
     }
 
-    class ICellTools
+    public class ICellTools
     {
         public static ICell ICellFromRank(Rank rank, Ownership owner)
         {
@@ -96,7 +94,82 @@ namespace Common
 
             return ans;
         }
+
+        public static ICell ICellFromString(string identifier)
+        {
+            var tokens = identifier.Split(",".ToCharArray(), 2);
+            Ownership owner;
+            switch (tokens[1])
+            {
+                case "Board":
+                    owner = Ownership.Board;
+                    break;
+                case "FirstPlayer":
+                    owner = Ownership.FirstPlayer;
+                    break;
+                case "SecondPlayer":
+                    owner = Ownership.SecondPlayer;
+                    break;
+                default:
+                    return null;
+            }
+
+            ICell ans;
+
+            switch (tokens[0])
+            {
+                case "Common.EmptyCell":
+                    ans = new EmptyCell();
+                    break;
+                case "Common.Enemy":
+                    ans = new Enemy(owner);
+                    break;
+                case "Common.WaterCell":
+                    ans = new WaterCell();
+                    break;
+                case "Common.Flag":
+                    ans = new Flag(owner);
+                    break;
+                case "Common.Spy":
+                    ans = new Spy(owner);
+                    break;
+                case "Common.Scout":
+                    ans = new Scout(owner);
+                    break;
+                case "Common.Miner":
+                    ans = new Miner(owner);
+                    break;
+                case "Common.Sergeant":
+                    ans = new Sergeant(owner);
+                    break;
+                case "Common.Lieutenant":
+                    ans = new Lieutenant(owner);
+                    break;
+                case "Common.Captain":
+                    ans = new Captain(owner);
+                    break;
+                case "Common.Major":
+                    ans = new Major(owner);
+                    break;
+                case "Common.Colonel":
+                    ans = new Colonel(owner);
+                    break;
+                case "Common.General":
+                    ans = new General(owner);
+                    break;
+                case "Common.Marshal":
+                    ans = new Marshal(owner);
+                    break;
+                case "Common.Bomb":
+                    ans = new Bomb(owner);
+                    break;
+                default:
+                    throw new NotImplementedException("ICellFromString: "+identifier);
+            }
+            return ans;
+        }
     }
+    
 
 
     // For Water and Empty types
@@ -104,7 +177,6 @@ namespace Common
     {
         public override Position[] GetValidMoves(CellSampler cs, Position pos)
         {
-            // TODO: maybe return only current position 'pos'
             return new Position[0];
         }
 
@@ -153,7 +225,7 @@ namespace Common
             this.owner = owner;
         }
 
-        public new Ownership GetOwnership()
+        public override Ownership GetOwnership()
         {
             return this.owner;
         }
@@ -223,7 +295,6 @@ namespace Common
         {
         }
 
-        // TODO: maybe return only current position 'pos'
         public Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             return new Position[0];
