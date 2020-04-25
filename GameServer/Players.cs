@@ -23,54 +23,57 @@ namespace GameServer
         }
 
         // Should return a message
-        public NetOutgoingMessage SignUp(NetConnection user, NetOutgoingMessage msg)
+        public Ownership SignUp(NetConnection user)
         {
+            Ownership ans = Ownership.Board;
             lock (_Players)
             {
                 if (_Players.Contains(user)){
-                    msg.Write("AlreadyConnected!");
-                    return msg;
+                    Console.Write("{0} AlreadyConnected and trying to SignUp again!", user.ToString());
+                    ans = GetPlayerFromConnection(user);
                 }
-
-                int player_index = 0;
-                while (player_index < _Players.Length)
+                else
                 {
-                    if (_Players[player_index] == null)
+                    // Assign user with a Player ("FirstPlayer" etc)
+                    int player_index = 0;
+                    while (player_index < _Players.Length)
                     {
-                        _Players[player_index] = user;
-                        msg.Write(((Ownership)(player_index+1)).ToString());
-                        Console.WriteLine(String.Format("Signed user {0} to Player {1}", user.ToString(), ((Ownership)(player_index+1)).ToString()));
-                        break;
+                        if (_Players[player_index] == null)
+                        {
+                            _Players[player_index] = user;
+                            ans = (Ownership)(player_index+1);
+                            Console.WriteLine(String.Format("Signed user {0} to Player {1}", user.ToString(), ans.ToString()));
+                            break;
+                        }
+                        player_index++;
                     }
-                    player_index++;
+
+                    if (player_index <= _Players.Length)
+                    {
+                        Console.WriteLine("Too many players connected! attempt by {0}, IP: {1}. Connection will be refused.", user.ToString() ,user.RemoteEndPoint.ToString());
+                        ans = Ownership.Board;
+                    } 
                 }
-                if(player_index == _Players.Length)
-                    msg.Write("Two Players already connected!");
             }
 
-            return msg;
+            return ans;
         }
 
-        public NetOutgoingMessage SignOut(NetConnection user, NetOutgoingMessage msg)
+        public void SignOut(NetConnection user)
         {
             lock (_Players)
             {
-                int player_index = 0;
-                while (player_index < _Players.Length)
+                Ownership player = GetPlayerFromConnection(user);
+                if (player == Ownership.Board)
                 {
-                    if (_Players[player_index] == user)
-                    {
-                        _Players[player_index] = null;
-                        msg.Write("Sign out: "+((Ownership)(player_index+1)).ToString());
-                        Console.WriteLine(String.Format("Signed out user {0} to Player {1}", user.ToString(), ((Ownership)(player_index+1)).ToString()));
-                        break;
-                    }
-                    player_index++;
+                    Console.WriteLine("Can't Signout {0}, IP: {1}, No such user!", user.ToString(),
+                        user.RemoteEndPoint.ToString());
                 }
-                if(player_index == _Players.Length)
-                    msg.Write("Can't Signout, No such user!");
-
-                return msg;
+                else
+                {
+                    _Players[(int)player - 1] = null;
+                    Console.WriteLine(String.Format("Signed out user {0} to Player {1}", user.ToString(), player.ToString()));    
+                }
             }
         }
 

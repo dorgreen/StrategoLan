@@ -7,13 +7,8 @@ using Lidgren.Network;
 
 namespace GameServer
 {
-    
-    
     public abstract class GameState
     {
-        
-        
-        
         protected Game game;
         public abstract void HandleMessage(NetIncomingMessage message);
 
@@ -21,7 +16,6 @@ namespace GameServer
         {
             this.game = game;
         }
-        
     }
 
     public class AwaitConnectionState : GameState
@@ -35,8 +29,8 @@ namespace GameServer
         // Move to awaitboardinit when two players are present
         public override void HandleMessage(NetIncomingMessage message)
         {
-            if(message == null) return;
-             
+            if (message == null) return;
+
             switch (message.MessageType)
             {
                 case NetIncomingMessageType.DebugMessage:
@@ -47,17 +41,31 @@ namespace GameServer
                     Console.WriteLine(String.Format("Got message:{0}", text));
                     break;
                 case NetIncomingMessageType.StatusChanged:
-                    NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
+                    NetConnectionStatus status = (NetConnectionStatus) message.ReadByte();
                     string reason = message.ReadString();
-                    Console.WriteLine(NetUtility.ToHexString(message.SenderConnection.RemoteUniqueIdentifier) + " " + status + ": " + reason);
+                    Console.WriteLine(NetUtility.ToHexString(message.SenderConnection.RemoteUniqueIdentifier) + " " +
+                                      status + ": " + reason);
 
-                    var response = game.server.CreateMessage();
                     if (status == NetConnectionStatus.Connected)
-                        response = game.players.SignUp(message.SenderConnection, response);
-                    else if (status == NetConnectionStatus.Disconnecting)
-                        response = game.players.SignOut(message.SenderConnection, response);
+                    {
+                        var player = game.players.SignUp(message.SenderConnection);
+                        if (player == Ownership.Board)
+                        {
+                            // TODO: Send them something nice before refusing?
+                            message.SenderConnection.Disconnect("Can't log in.");
+                            return;
+                        }
 
-                    game.server.SendMessage(response, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                        game.server.SendMessage(
+                            game.CreateStatusMessage(ClientGameStates.InitialConnection, player.ToString()),
+                            message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                    }
+
+                    else if (status == NetConnectionStatus.Disconnecting)
+                    {
+                        game.players.SignOut(message.SenderConnection);
+                        // TODO: MAYBE SEND SOME MESSAGE?
+                    }
                     break;
                 default:
                     break;
@@ -73,8 +81,8 @@ namespace GameServer
 
     public class AwaitBoardInitializationState : GameState
     {
-
         public bool[] boardinit;
+
         public AwaitBoardInitializationState(Game game) : base(game)
         {
             // Send both players a notice to init their boards
@@ -84,12 +92,12 @@ namespace GameServer
 
             this.boardinit = new[] {false, false};
         }
-        
+
         public override void HandleMessage(NetIncomingMessage message)
         {
-            if(message == null) return;
+            if (message == null) return;
             NetOutgoingMessage response = game.server.CreateMessage();
-             
+
             switch (message.MessageType)
             {
                 case NetIncomingMessageType.DebugMessage:
@@ -99,12 +107,13 @@ namespace GameServer
                     string text = message.ReadString();
                     Console.WriteLine(String.Format("Got message:{0}", text));
                     break;
-                case NetIncomingMessageType.StatusChanged when (NetConnectionStatus)message.ReadByte() == NetConnectionStatus.Disconnecting:
-                    NetConnectionStatus status = (NetConnectionStatus)message.ReadByte();
+                case NetIncomingMessageType.StatusChanged
+                    when (NetConnectionStatus) message.ReadByte() == NetConnectionStatus.Disconnecting:
+                    NetConnectionStatus status = (NetConnectionStatus) message.ReadByte();
                     string reason = message.ReadString();
-                    Console.WriteLine(NetUtility.ToHexString(message.SenderConnection.RemoteUniqueIdentifier) + " " + status + ": " + reason);
-                    response = game.players.SignOut(message.SenderConnection, response);
-                    game.server.SendMessage(response, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                    Console.WriteLine(NetUtility.ToHexString(message.SenderConnection.RemoteUniqueIdentifier) + " " +
+                                      status + ": " + reason);
+                    game.players.SignOut(message.SenderConnection);
                     break;
                 case NetIncomingMessageType.Data:
                     Packet incoming_packet = game.packetfactory.ReadNetMessage(message);
@@ -118,16 +127,23 @@ namespace GameServer
                             }
                             else
                             {
-                                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.Error, "Illegal board sent by user"), message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                                game.server.SendMessage(
+                                    game.CreateStatusMessage(ClientGameStates.Error, "Illegal board sent by user"),
+                                    message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                             }
+
                             if (boardinit[0] && boardinit[1])
                             {
                                 game.state = new AwaitPlayerStartState(game);
                                 return;
                             }
+
                             break;
                         default:
-                            game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.Error, "Unexpected packet. Waiting for user to send board"), message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
+                            game.server.SendMessage(
+                                game.CreateStatusMessage(ClientGameStates.Error,
+                                    "Unexpected packet. Waiting for user to send board"), message.SenderConnection,
+                                NetDeliveryMethod.ReliableOrdered);
                             break;
                     }
 
@@ -143,13 +159,14 @@ namespace GameServer
         public AwaitPlayerStartState(Game game) : base(game)
         {
             // Send both players a notice to press "Start Game"
-            NetOutgoingMessage msg = game.CreateStatusMessage(ClientGameStates.WaitForStart, "Waiting both players to press START");
+            NetOutgoingMessage msg =
+                game.CreateStatusMessage(ClientGameStates.WaitForStart, "Waiting both players to press START");
             game.server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
-            this.playerstart = new[] {false, false};   
+            this.playerstart = new[] {false, false};
         }
-        
-       // When player i sends Start, tell player i to ack
-       // When both players sent start, Move to state GameWaitFirstPlayerMoveState
+
+        // When player i sends Start, tell player i to ack
+        // When both players sent start, Move to state GameWaitFirstPlayerMoveState
         public override void HandleMessage(NetIncomingMessage message)
         {
             // TODO: properly handle other types
@@ -166,12 +183,15 @@ namespace GameServer
                     this.playerstart[(int) game.players.GetPlayerFromConnection(message.SenderConnection) - 1] = true;
                     if (this.playerstart.All(x => x))
                     {
+                        game.server.SendToAll(game.CreateStatusMessage(ClientGameStates.Error, "Starting game.."),
+                            NetDeliveryMethod.ReliableOrdered);
                         game.state = new GameWaitFirstPlayerMoveState(game);
                         return;
                     }
                     else
                     {
-                        var response = game.CreateStatusMessage(ClientGameStates.WaitForStart, "waiting for other user..");
+                        var response = game.CreateStatusMessage(ClientGameStates.WaitForStart,
+                            "Waiting for other player to press start..");
                         game.server.SendMessage(response, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
 
                         var notice = game.CreateStatusMessage(ClientGameStates.WaitForStart,
@@ -179,17 +199,15 @@ namespace GameServer
                         game.server.SendMessage(notice, game.players.GetOtherUserConnection(message.SenderConnection),
                             NetDeliveryMethod.ReliableOrdered);
                     }
+
                     return;
-                
+
                 default:
                     var error_msg = game.CreateStatusMessage(ClientGameStates.WaitForStart,
                         "Unrecognized Request. Waiting for player to start...");
                     game.server.SendMessage(error_msg, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                     break;
             }
-            
-
-
         }
     }
 
@@ -198,12 +216,13 @@ namespace GameServer
     public abstract class WaitMove : GameState
     {
         protected Ownership player;
+
         protected WaitMove(Game game, Ownership player) : base(game)
         {
             this.player = player;
-            
+
             game.SendBoardToUsers();
-            
+
             // Let player know we are waiting
             var this_player_message = game.CreateStatusMessage(ClientGameStates.YourMove, info: "");
             game.server.SendMessage(this_player_message, game.players.GetConnection(player),
@@ -213,22 +232,24 @@ namespace GameServer
             var other_player_message = game.CreateStatusMessage(ClientGameStates.WaitOtherPlayerMove, info: "");
             game.server.SendMessage(other_player_message, game.players.GetConnection(Players.OtherPlayer(player)),
                 NetDeliveryMethod.ReliableOrdered);
-            
+
             game.server.FlushSendQueue();
         }
 
         public override void HandleMessage(NetIncomingMessage message)
         {
             // TODO: Safely handle other messages
-            if(message.MessageType != NetIncomingMessageType.Data) return;
+            if (message.MessageType != NetIncomingMessageType.Data) return;
 
             Packet packet = game.packetfactory.ReadNetMessage(message);
             if (game.players.GetPlayerFromConnection(message.SenderConnection) != this.player)
             {
-                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.Error, "Wait for other player to play"), message.SenderConnection, NetDeliveryMethod.Unknown);
+                game.server.SendMessage(
+                    game.CreateStatusMessage(ClientGameStates.Error, "Wait for other player to play"),
+                    message.SenderConnection, NetDeliveryMethod.Unknown);
                 return;
             }
-            
+
 
             switch (packet)
             {
@@ -236,15 +257,16 @@ namespace GameServer
                     if (player == Ownership.SecondPlayer)
                     {
                         movePacket.origin.Flip(Board.DefaultBoardSize);
-                        movePacket.dest.Flip(Board.DefaultBoardSize);    
+                        movePacket.dest.Flip(Board.DefaultBoardSize);
                     }
+
                     if (game.board.VerifyMove(movePacket.origin, movePacket.dest))
                     {
                         ICell attacker = game.board.SampleLocation(movePacket.origin, player);
                         ICell defender = game.board.SampleLocation(movePacket.dest, Players.OtherPlayer(player));
                         game.board.ApplyValidMove(movePacket.origin, movePacket.dest);
                         ICell winner_piece = game.board.SampleLocation(movePacket.dest, player);
-                        
+
                         // Let players know of result
                         switch (defender)
                         {
@@ -253,8 +275,11 @@ namespace GameServer
                             case WaterCell w:
                                 throw new ArgumentException("HandleMessage: can't attack WaterCell");
                             case Flag f:
-                                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.YourMove, string.Format("{0} attacks {1}. Game Over.",
-                                    ((Piece) attacker).GetRank().ToString(), ((Piece) defender).GetRank().ToString())), message.SenderConnection, NetDeliveryMethod.ReliableOrdered) ;
+                                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.YourMove,
+                                        string.Format("{0} attacks {1}. Game Over.",
+                                            ((Piece) attacker).GetRank().ToString(),
+                                            ((Piece) defender).GetRank().ToString())), message.SenderConnection,
+                                    NetDeliveryMethod.ReliableOrdered);
                                 game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.WaitOtherPlayerMove,
                                         string.Format("{0} attacks {1}. Game Over.",
                                             ((Piece) attacker).GetRank().ToString(),
@@ -274,12 +299,17 @@ namespace GameServer
                                             ? ((Piece) attacker).GetRank().ToString()
                                             : ((Piece) defender).GetRank().ToString()));
 
-                                
-                                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.YourMove, summary + result), game.players.GetConnection(player),NetDeliveryMethod.ReliableOrdered);
-                                game.server.SendMessage(game.CreateStatusMessage(ClientGameStates.WaitOtherPlayerMove, summary + result), game.players.GetConnection(Players.OtherPlayer(player)),NetDeliveryMethod.ReliableOrdered);
+
+                                game.server.SendMessage(
+                                    game.CreateStatusMessage(ClientGameStates.YourMove, summary + result),
+                                    game.players.GetConnection(player), NetDeliveryMethod.ReliableOrdered);
+                                game.server.SendMessage(
+                                    game.CreateStatusMessage(ClientGameStates.WaitOtherPlayerMove, summary + result),
+                                    game.players.GetConnection(Players.OtherPlayer(player)),
+                                    NetDeliveryMethod.ReliableOrdered);
                                 break;
                         }
-                        
+
                         game.SendBoardToUsers();
 
                         if (game.board.CheckGameOver() != Ownership.Board)
@@ -305,24 +335,24 @@ namespace GameServer
                         game.server.SendMessage(error_msg, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                         return;
                     }
+
                     break;
             }
         }
     }
+
     public class GameWaitFirstPlayerMoveState : WaitMove
     {
         public GameWaitFirstPlayerMoveState(Game game) : base(game, Ownership.FirstPlayer)
         {
         }
-        
     }
-    
+
     public class GameWaitSecondPlayerMoveState : WaitMove
     {
         public GameWaitSecondPlayerMoveState(Game game) : base(game, Ownership.SecondPlayer)
         {
         }
-        
     }
 
     public class GameOverState : GameState
@@ -330,7 +360,7 @@ namespace GameServer
         public GameOverState(Game game) : base(game)
         {
             var winner = game.board.CheckGameOver();
-            if(winner == Ownership.Board) throw new ConstraintException("Can't GameOver from an ongoing game");
+            if (winner == Ownership.Board) throw new ConstraintException("Can't GameOver from an ongoing game");
             // Greet winner, loser
             var greeting = "Game Over! You {0} replay or leave. waiting for players..";
             var winner_msg = game.CreateStatusMessage(ClientGameStates.GameOver, String.Format(greeting, "WIN!"));
@@ -340,17 +370,14 @@ namespace GameServer
             game.server.SendMessage(loser_msg, game.players.GetConnection(Players.OtherPlayer(winner)),
                 NetDeliveryMethod.ReliableOrdered);
         }
-        
+
         public override void HandleMessage(NetIncomingMessage message)
         {
             throw new NotImplementedException();
-        } 
+        }
     }
-    
-    
-    
-    
-    
+
+
     public class Game
     {
         public Players players;
@@ -371,7 +398,7 @@ namespace GameServer
 
         public void SendBoardToUsers()
         {
-            for( Ownership player = Ownership.FirstPlayer ; player <= Ownership.SecondPlayer ; player++)
+            for (Ownership player = Ownership.FirstPlayer; player <= Ownership.SecondPlayer; player++)
             {
                 var message = server.CreateMessage();
                 Packet board_packet = packetfactory.GetPacketInstance(PacketHeader.BoardPacket);
@@ -379,6 +406,7 @@ namespace GameServer
                 board_packet.PackIntoNetMessage(message);
                 server.SendMessage(message, players.GetConnection(player), NetDeliveryMethod.ReliableOrdered);
             }
+
             server.FlushSendQueue();
             return;
         }
@@ -410,13 +438,12 @@ namespace GameServer
 
         public void PrintState(bool verbose = false)
         {
-            
             Console.WriteLine("GameState: {0}", this.state.ToString());
-            if(!verbose) return;
+            if (!verbose) return;
             switch (this.state)
             {
                 case AwaitConnectionState a:
-                    Console.WriteLine("connected player: {0}" ,this.players.ToString());
+                    Console.WriteLine("connected player: {0}", this.players.ToString());
                     break;
                 case AwaitBoardInitializationState a:
                     Console.WriteLine("FirstPlayer: {0}, SecondPlayer: {1}", a.boardinit);
@@ -435,12 +462,5 @@ namespace GameServer
                     break;
             }
         }
-        
-        
-        
-        
-        
     }
-    
-    
 }

@@ -10,14 +10,17 @@ namespace Common
     public enum PacketHeader
     {
         BoardPacket,
-        AttamptMovePacket,
+        AttemptMovePacket,
         ServerToClientGameStatusUpdatePacket,
         PlayerReady
     }
 
+   
+    // TODO: Maybe add a "display data" packet?
     public enum ClientGameStates
     {
         Error,
+        InitialConnection,
         WaitForBoard,
         WaitForStart,
         YourMove,
@@ -98,10 +101,10 @@ namespace Common
         {
             if (origin.X == -1 || origin.Y == -1 || dest.X == -1 || dest.Y == -1)
             {
-                throw new Exception("Packet is not populated: AttamptMovePacket");
+                throw new Exception("Packet is not populated: AttemptMovePacket");
             }
             
-            msg.Write((byte)PacketHeader.AttamptMovePacket);
+            msg.Write((byte)PacketHeader.AttemptMovePacket);
             msg.Write("From ");
             msg.Write(origin.X);
             msg.Write(" ");
@@ -114,7 +117,7 @@ namespace Common
 
         public Packet PopulateFromNetMessage(NetIncomingMessage msg)
         {
-            if (msg.ReadByte() != (Byte)PacketHeader.AttamptMovePacket)
+            if (msg.ReadByte() != (Byte)PacketHeader.AttemptMovePacket)
             {
                 return null;
             }

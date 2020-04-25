@@ -6,6 +6,7 @@ namespace Common
 {
    // TODO: IMPLEMENT SINGLETON
    // NOT THREAD SAFE, ASSUMING SEQUENTIAL RUN WITHOUT INTERRUPTS (no more than one instance of each and no wait)
+   // ASSUMING NEVER NEEDING TWO INSTANCES OF THE SAME PACKET TYPE IN THE SAME TIME (could be solved by having one for incomming and one for outgoing packets)
    public class PacketFactoryFlyWheel
     {
         private Dictionary<PacketHeader, Packet> flywheel;
@@ -35,7 +36,7 @@ namespace Common
                     case PacketHeader.PlayerReady:
                         packet = new PlayerReadyPacket();
                         break;
-                    case PacketHeader.AttamptMovePacket:
+                    case PacketHeader.AttemptMovePacket:
                         packet = new AttemptMovePacket();
                         break;
                     case PacketHeader.ServerToClientGameStatusUpdatePacket:
