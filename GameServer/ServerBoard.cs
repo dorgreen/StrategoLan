@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-
 using Common;
 
 namespace GameServer
@@ -10,19 +9,20 @@ namespace GameServer
     {
         public void Reset()
         {
-            this.State = new ICell[DefaultBoardSize* DefaultBoardSize];
+            this.State = new ICell[DefaultBoardSize * DefaultBoardSize];
             InitBoardSystemCells();
             return;
         }
 
 
+        // Retruns the winner or Board if game is ongoing
         public Ownership CheckGameOver()
         {
             bool[] flags = new bool[2] {false, false};
             bool[] has_moveable = new bool[2] {false, false};
 
             ICell cell;
-            for(int index = 0 ; index < DefaultBoardSize*DefaultBoardSize ; index++)
+            for (int index = 0; index < DefaultBoardSize * DefaultBoardSize; index++)
             {
                 cell = State[index];
                 switch (cell)
@@ -30,13 +30,14 @@ namespace GameServer
                     case Flag f:
                         flags[(int) f.GetOwnership() - 1] = true;
                         break;
-                    case MovablePiece p when p.GetValidMoves(this, Position.PositionFromIndex(index, DefaultBoardSize)).Length > 0:
+                    case MovablePiece p
+                        when p.GetValidMoves(this, Position.PositionFromIndex(index, DefaultBoardSize)).Length > 0:
                         has_moveable[(int) p.GetOwnership() - 1] = true;
                         break;
                 }
 
                 // lazy stop when possible..
-                if (flags.All(x => x) && has_moveable.All(x => x))
+                if (flags[0] && flags[1] && has_moveable[0] && has_moveable[1])
                 {
                     return Ownership.Board;
                 }
@@ -47,9 +48,8 @@ namespace GameServer
                 return Ownership.FirstPlayer;
             }
             else return Ownership.SecondPlayer;
-
         }
-        
+
         // TODO: Change signature?
         // TODO: TEST
         public Boolean ApplyValidMove(Position start, Position end)
@@ -72,12 +72,12 @@ namespace GameServer
             {
                 return false;
             }
-            
+
             if (attacker == null || defender == null) return false;
 
             ICell winner = ConflictHandler.Handle(attacker, defender);
-            State[end.X * DefaultBoardSize + end.Y] = winner;
-            State[start.X * DefaultBoardSize + start.Y] = new EmptyCell();
+            State[end.to_board_index(DefaultBoardSize)] = winner;
+            State[start.to_board_index(DefaultBoardSize)] = new EmptyCell();
             return true;
         }
 
@@ -131,12 +131,12 @@ namespace GameServer
                     user_icells.CopyTo(State, 0);
                     break;
                 case Ownership.SecondPlayer:
-                    user_icells.Reverse().ToArray().CopyTo(State, (DefaultBoardSize*DefaultBoardSize - 2));
+                    user_icells.Reverse().ToArray().CopyTo(State, (DefaultBoardSize * (DefaultBoardSize - 2)));
                     break;
                 default:
                     return false;
             }
-            
+
             return true;
         }
 
@@ -151,6 +151,7 @@ namespace GameServer
                 {
                     State[index] = new EmptyCell();
                 }
+
                 State[index] = new WaterCell();
             }
         }
