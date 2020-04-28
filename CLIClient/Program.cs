@@ -105,7 +105,7 @@ namespace CLIClient
                                         else
                                         {
                                             // TODO: ADD "IF VERBOSE"
-                                            Console.WriteLine("unexpected Inital Conenction. signed as {0}, recived confirm for {1}", this_player.ToString(), sp.info);
+                                            Console.WriteLine("unexpected Initial Conecnction. signed as {0}, received confirm for {1}", this_player.ToString(), sp.info);
                                         }
 
                                         break;

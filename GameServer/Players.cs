@@ -48,7 +48,7 @@ namespace GameServer
                         player_index++;
                     }
 
-                    if (player_index <= _Players.Length)
+                    if (player_index >= _Players.Length)
                     {
                         Console.WriteLine("Too many players connected! attempt by {0}, IP: {1}. Connection will be refused.", user.ToString() ,user.RemoteEndPoint.ToString());
                         ans = Ownership.Board;

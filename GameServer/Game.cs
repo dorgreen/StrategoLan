@@ -89,6 +89,7 @@ namespace GameServer
             NetOutgoingMessage msg = game.CreateStatusMessage(ClientGameStates.WaitForBoard,
                 "Waiting for players to place their pieces on the board..");
             game.server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
+            game.server.FlushSendQueue();
 
             this.boardinit = new[] {false, false};
         }
