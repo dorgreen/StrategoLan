@@ -13,16 +13,28 @@ namespace Common
     
     public class Board : CellSampler
     {
+        public const int DefaultBoardSize = 10;
+        protected ICell[] State;
         
         public static readonly Rank[] DefaultPiecesRanks =
         {
             Rank.Flag, Rank.Spy, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout,
-            Rank.Scout, Rank.Miner, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Scout, Rank.Sergeant, Rank.Sergeant,
+            Rank.Scout, Rank.Miner, Rank.Miner, Rank.Miner, Rank.Miner, Rank.Miner, Rank.Sergeant, Rank.Sergeant,
             Rank.Sergeant, Rank.Sergeant, Rank.Lieutenant, Rank.Lieutenant, Rank.Lieutenant, Rank.Lieutenant,
             Rank.Captain, Rank.Captain, Rank.Captain, Rank.Captain, Rank.Major, Rank.Major, Rank.Major,
-            Rank.Colonel, Rank.Colonel, Rank.Marshal, Rank.Bomb, Rank.Bomb, Rank.Bomb, Rank.Bomb, Rank.Bomb,
+            Rank.Colonel, Rank.Colonel, Rank.General, Rank.Marshal, Rank.Bomb, Rank.Bomb, Rank.Bomb, Rank.Bomb, Rank.Bomb,
             Rank.Bomb
         };
+
+        public Board(ICell[] state)
+        {
+            State = state;
+        }
+        
+        public Board(int board_size=DefaultBoardSize*DefaultBoardSize)
+        {
+            this.State = new ICell[board_size];
+        }
 
         public static List<ICell> GetDefaultPieces(Ownership player)
         {
@@ -37,9 +49,7 @@ namespace Common
             return new List<ICell>(ans);
             
         }
-
-        public const int DefaultBoardSize = 10;
-        protected ICell[] State;
+        
         protected ICell CellAtPos(Position pos)
         {
             ICell ans;

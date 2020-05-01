@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using Common;
 
@@ -7,6 +8,10 @@ namespace GameServer
 {
     public class ServerBoard : Board
     {
+        public ServerBoard() : base()
+        {
+        }
+
         public void Reset()
         {
             this.State = new ICell[DefaultBoardSize * DefaultBoardSize];
@@ -92,8 +97,8 @@ namespace GameServer
 
         public Boolean InitBoardFromUser(string[] input, Ownership player)
         {
-            // make sure size is correct
-            if (input.Length != DefaultPiecesRanks.Length)
+            // make sure size is correct and all are all indeed valid
+            if (input.Length != DefaultPiecesRanks.Length || input.Any(id => !ICellTools.IsStringICell(id)))
             {
                 return false;
             }
@@ -103,6 +108,7 @@ namespace GameServer
             var user_icells_ranklist = new List<Rank>();
             var enumerator = user_icells.GetEnumerator();
             enumerator.Reset();
+            if(!enumerator.MoveNext()) throw  new EvaluateException("InitBoardFromUser");
             ICell item;
             while ((item = (ICell) enumerator.Current) != null)
             {
@@ -115,15 +121,18 @@ namespace GameServer
                         return false;
                 }
 
-                enumerator.MoveNext();
+                if(!enumerator.MoveNext()) break;
             }
 
             // make sure all pieces that should be there - are there
-            var intersect = user_icells_ranklist.Intersect(DefaultPiecesRanks);
-            if (intersect.Count() != DefaultPiecesRanks.Length)
+            var ordered_user_ranklist = user_icells_ranklist.OrderBy(rank => (int) rank);
+
+            if (!DefaultPiecesRanks
+                .Zip(ordered_user_ranklist, (expected_rank, given_rank) => expected_rank == given_rank).All(x => x))
             {
                 return false;
             }
+
 
             switch (player)
             {
@@ -131,7 +140,8 @@ namespace GameServer
                     user_icells.CopyTo(State, 0);
                     break;
                 case Ownership.SecondPlayer:
-                    user_icells.Reverse().ToArray().CopyTo(State, (DefaultBoardSize * (DefaultBoardSize - 2)));
+                    int insert_index = Position.CoordinatesToIndex(0, DefaultBoardSize - 4);
+                    user_icells.Reverse().ToArray().CopyTo(State, insert_index);
                     break;
                 default:
                     return false;

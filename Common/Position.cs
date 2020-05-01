@@ -15,12 +15,17 @@ namespace Common
             _y = ypos;
         }
 
-        public static Position PositionFromIndex(int index, int row_length)
+        public static Position PositionFromIndex(int index, int row_length=Board.DefaultBoardSize)
         {
             return new Position(xpos: index % row_length , ypos: index / row_length);
         }
 
-        public void Flip(int board_size)
+        public static int CoordinatesToIndex(int x, int y, int default_board_size=Board.DefaultBoardSize)
+        {
+            return x + default_board_size * y;
+        }
+
+        public void Flip(int board_size=Board.DefaultBoardSize)
         {
             _x = board_size - 1 - _x;
             _y = board_size - 1 - _y;
@@ -32,9 +37,9 @@ namespace Common
             this._y = other._y;
         }
 
-        public int to_board_index(int default_board_size)
+        public int to_board_index(int default_board_size=Board.DefaultBoardSize)
         {
-            return _x + default_board_size * _y;
+            return CoordinatesToIndex(_x, _y);
         }
 
         public Position(Position p, Directions dir)
