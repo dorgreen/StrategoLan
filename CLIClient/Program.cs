@@ -14,14 +14,30 @@ namespace CLIClient
             var ans = Board.GetDefaultPieces(player).ToArray();
             return ans;
         }
-
-
-        // TODO: ATLEAST MOCK IT!
+        
         private static Position getPositionFromUser(string title)
         {
             Console.WriteLine("Enter Position of {0}. Example: B 4", title);
+            int row, column;
             var input = Console.ReadLine();
-            throw new NotImplementedException();
+            var tokens = input.Split();
+            if (tokens[0].Length != 1 || tokens[0][0] < 'A' || tokens[0][0] > 'Z' )
+            {
+                Console.WriteLine("Invalid input. try again");
+                return getPositionFromUser(title);
+            }
+
+            column = tokens[0][0] - 'A';
+
+            if (tokens[1].Length == 0 || tokens[1].Length > 2 || !Int32.TryParse(tokens[1], out row) || row > Board.DefaultBoardSize || row < 1)
+            {
+                Console.WriteLine("Invalid input. try again");
+                return getPositionFromUser(title);
+            }
+
+            row = row - 1;
+
+            return new Position(column, row);
         }
 
         // TODO: foolproof, add a way to cancel, and also it's blocking and that's probably not good.
@@ -33,14 +49,13 @@ namespace CLIClient
             }
             return;
         }
-
-        // TODO: DO ME!!!!!!!
+        
         public static void GetMoveFromUser(AttemptMovePacket p)
         {
-            p.origin.X = 3;
-            p.origin.Y = 2;
-            p.dest.X = 3;
-            p.dest.Y = 3;
+            var origin = getPositionFromUser("the Piece you would like to move");
+            var destination = getPositionFromUser("Where you would like to move the piece to");
+            p.origin = origin;
+            p.dest = destination;
         }
 
         public static void Main(string[] args)
@@ -92,6 +107,10 @@ namespace CLIClient
                                 board.PrintBoard();
                                 break;
                             case ServerToClientGameStatusUpdatePacket sp:
+                                
+                                //TODO: add "if debug
+                                Console.WriteLine("Got status message: {0}, {1}", sp.state.ToString(), sp.info);
+                                
                                 switch (sp.state)
                                 {
                                     case ClientGameStates.InitialConnection when sp.info == Ownership.FirstPlayer.ToString() || sp.info == Ownership.SecondPlayer.ToString():
@@ -158,6 +177,7 @@ namespace CLIClient
                         }
                     }
                 }
+                client.FlushSendQueue();
 
                 // Console.WriteLine("sleep..");
                 Thread.Sleep(100);
