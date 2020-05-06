@@ -16,8 +16,6 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Scrap", "Scrap\Scrap.csproj
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ScrapServer", "ScrapServer\ScrapServer.csproj", "{79B49C4E-46E7-43FB-BF7C-B66DAD33ECDE}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "JSON_Scrap", "JSON_Scrap\JSON_Scrap.csproj", "{019358BC-4149-4CC5-BBE2-F1A7FDB1AB5E}"
-EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "UnitTestServerBoard", "UnitTestServerBoard\UnitTestServerBoard.csproj", "{9B17221E-569F-4EFF-BEA9-D5A38981DBA5}"
 EndProject
 Global
@@ -58,10 +56,6 @@ Global
 		{79B49C4E-46E7-43FB-BF7C-B66DAD33ECDE}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{79B49C4E-46E7-43FB-BF7C-B66DAD33ECDE}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{79B49C4E-46E7-43FB-BF7C-B66DAD33ECDE}.Release|Any CPU.Build.0 = Release|Any CPU
-		{019358BC-4149-4CC5-BBE2-F1A7FDB1AB5E}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{019358BC-4149-4CC5-BBE2-F1A7FDB1AB5E}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{019358BC-4149-4CC5-BBE2-F1A7FDB1AB5E}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{019358BC-4149-4CC5-BBE2-F1A7FDB1AB5E}.Release|Any CPU.Build.0 = Release|Any CPU
 		{9B17221E-569F-4EFF-BEA9-D5A38981DBA5}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{9B17221E-569F-4EFF-BEA9-D5A38981DBA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{9B17221E-569F-4EFF-BEA9-D5A38981DBA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
