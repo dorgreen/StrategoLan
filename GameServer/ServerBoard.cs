@@ -10,6 +10,7 @@ namespace GameServer
     {
         public ServerBoard() : base()
         {
+            InitBoardSystemCells();
         }
 
         public void Reset()
@@ -155,14 +156,16 @@ namespace GameServer
             // Fills the middle two rows with the defaults ICells:
             // two Empty, two Water, two Empty, two Water, two Empty per row
             // Assumes classic board
-            for (int index = DefaultBoardSize * 2; index < DefaultBoardSize * 4 - 1; index++)
+            for (int index = DefaultBoardSize * 4; index < DefaultBoardSize * 6 ; index++)
             {
                 if ((index % DefaultBoardSize) / 2 % 2 == 0)
                 {
                     State[index] = new EmptyCell();
                 }
-
-                State[index] = new WaterCell();
+                else
+                {
+                    State[index] = new WaterCell();    
+                }
             }
         }
     }
