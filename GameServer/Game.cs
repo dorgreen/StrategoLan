@@ -22,6 +22,9 @@ namespace GameServer
     {
         public AwaitConnectionState(Game game) : base(game)
         {
+            
+            // TODO: ADD "IF DEBUG"
+            Console.WriteLine("Enter AwaitConnectionState");
         }
 
         // Register new players if appilcable
@@ -85,6 +88,9 @@ namespace GameServer
 
         public AwaitBoardInitializationState(Game game) : base(game)
         {
+            // TODO: ADD "IF DEBUG"
+            Console.WriteLine("Enter AwaitBoardInitializationState");
+            
             // Send both players a notice to init their boards
             NetOutgoingMessage msg = game.CreateStatusMessage(ClientGameStates.WaitForBoard,
                 "Waiting for players to place their pieces on the board..");
@@ -159,11 +165,16 @@ namespace GameServer
 
         public AwaitPlayerStartState(Game game) : base(game)
         {
+            
+            // TODO: ADD "IF DEBUG"
+            Console.WriteLine("Enter AwaitPlayerStartState");
+            
             // Send both players a notice to press "Start Game"
             NetOutgoingMessage msg =
                 game.CreateStatusMessage(ClientGameStates.WaitForStart, "Waiting both players to press START");
             game.server.SendToAll(msg, NetDeliveryMethod.ReliableOrdered);
             this.playerstart = new[] {false, false};
+            game.server.FlushSendQueue();
         }
 
         // When player i sends Start, tell player i to ack
@@ -220,6 +231,10 @@ namespace GameServer
 
         protected WaitMove(Game game, Ownership player) : base(game)
         {
+            
+            // TODO: ADD "IF DEBUG"
+            Console.WriteLine("Enter WaitMove on {0}", player.ToString());
+            
             this.player = player;
 
             game.SendBoardToUsers();
@@ -360,6 +375,11 @@ namespace GameServer
     {
         public GameOverState(Game game) : base(game)
         {
+            
+            // TODO: ADD "IF DEBUG"
+            Console.WriteLine("Enter GmaeOverState");
+            
+            
             var winner = game.board.CheckGameOver();
             if (winner == Ownership.Board) throw new ConstraintException("Can't GameOver from an ongoing game");
             // Greet winner, loser
