@@ -38,7 +38,7 @@ namespace Common
 
         public abstract ICell Sample(Ownership asker);
 
-        public string ToString()
+        public override string ToString()
         {
             return String.Format("{0},{1}", this.GetType().ToString(), this.GetOwnership().ToString());
         }
@@ -173,7 +173,6 @@ namespace Common
         public static bool IsStringICell(string to_parse)
         {
             var tokens = to_parse.Split(",".ToCharArray(), 2);
-            Ownership owner;
             switch (tokens[1])
             {
                 case "Board":
@@ -332,7 +331,7 @@ namespace Common
         {
         }
 
-        public Position[] GetValidMoves(CellSampler cs, Position pos)
+        public override Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             return new Position[0];
         }
