@@ -11,6 +11,12 @@ namespace CLIClient
         // currently returns a dummy made-in-advance board config
         public static ICell[] GetUserBoard(Ownership player)
         {
+            
+            Console.WriteLine("Press 'Q' to send default board");
+            while (Console.ReadKey().KeyChar != 'q')
+            {
+            }
+            
             var ans = Board.GetDefaultPieces(player).ToArray();
             return ans;
         }
@@ -20,7 +26,7 @@ namespace CLIClient
             Console.WriteLine("Enter Position of {0}. Example: B 4", title);
             int row, column;
             var input = Console.ReadLine();
-            var tokens = input.Split();
+            var tokens = input.Split(' ');
             if (tokens[0].Length != 1 || tokens[0][0] < 'A' || tokens[0][0] > 'Z' )
             {
                 Console.WriteLine("Invalid input. try again");
@@ -41,7 +47,7 @@ namespace CLIClient
         }
 
         // TODO: foolproof, add a way to cancel, and also it's blocking and that's probably not good.
-        private static void wait_for_player_start()
+        private static void WaitForPlayerStart()
         {
             Console.WriteLine("Press 's' to start");
             while (Console.ReadKey().KeyChar != 's')
@@ -49,13 +55,42 @@ namespace CLIClient
             }
             return;
         }
-        
+
         public static void GetMoveFromUser(AttemptMovePacket p)
         {
             var origin = getPositionFromUser("the Piece you would like to move");
             var destination = getPositionFromUser("Where you would like to move the piece to");
             p.origin = origin;
             p.dest = destination;
+        }
+
+        public static async void UserGetMoveAndSend(AttemptMovePacket packet, NetClient client)
+        {
+            GetMoveFromUser((AttemptMovePacket)packet);
+            var ans = client.CreateMessage();
+            packet.PackIntoNetMessage(ans);
+            client.SendMessage(ans, client.ServerConnection,
+                NetDeliveryMethod.ReliableOrdered);
+            packet.Recycle();
+        }
+
+        public static async void UserGetInitialBoardAndSend(BoardPacket packet, NetClient client, Ownership thisPlayer)
+        {
+            var user_board = GetUserBoard(thisPlayer);
+            ((BoardPacket)packet).SetBoardState(user_board);
+            var ans = client.CreateMessage();
+            packet.PackIntoNetMessage(ans);
+            client.SendMessage(ans, NetDeliveryMethod.ReliableOrdered);
+            packet.Recycle();
+        }
+
+        public static async void UserGetStartSignalAndSend(PlayerReadyPacket packet, NetClient client)
+        {
+            WaitForPlayerStart();
+            var ans = client.CreateMessage();
+            packet.PackIntoNetMessage(ans);
+            client.SendMessage(ans, NetDeliveryMethod.ReliableOrdered);
+            packet.Recycle();
         }
 
         public static void Main(string[] args)
@@ -71,11 +106,8 @@ namespace CLIClient
             var board = new ClientBoard();
             var factory = new PacketFactoryFlyWheel();
             NetIncomingMessage message;
-            NetOutgoingMessage ans;
-            Packet reply;
             var game_started = false;
             Ownership this_player = Ownership.Board;
-            
             
             
             // TODO: while(true) Should be replaced with Application.Idle handler!
@@ -93,6 +125,10 @@ namespace CLIClient
                     if(message.MessageType == NetIncomingMessageType.Data)
                     {
                         Packet packet = factory.ReadNetMessage(message);
+                        
+                        // TODO: ADD IF DEBUG
+                        Console.WriteLine("Got data packet: {0}", packet.ToString());
+                        
                         switch (packet)
                         {
                             case BoardPacket bp:
@@ -132,12 +168,8 @@ namespace CLIClient
                                     case ClientGameStates.Error when sp.info == "Invalid move. try again":
                                         game_started = true;
                                         // Ask player for move and pack it in a packet to send
-                                        reply = factory.GetPacketInstance(PacketHeader.AttemptMovePacket);
-                                        GetMoveFromUser((AttemptMovePacket)reply);
-                                        ans = client.CreateMessage();
-                                        reply.PackIntoNetMessage(ans);
-                                        client.SendMessage(ans, client.ServerConnection,
-                                            NetDeliveryMethod.ReliableOrdered);
+                                        UserGetMoveAndSend((AttemptMovePacket)factory.GetPacketInstance(PacketHeader.AttemptMovePacket),
+                                            client);
                                         break;
                                     case ClientGameStates.Error when sp.info == "Starting game..":
                                         game_started = true;
@@ -148,19 +180,11 @@ namespace CLIClient
                                     case ClientGameStates.Error
                                         when sp.info == "Unexpected packet. Waiting for user to send board":
                                         // Ask player to select initial location, pack it and send it
-                                        reply = factory.GetPacketInstance(PacketHeader.BoardPacket);
-                                        var user_board = GetUserBoard(this_player);
-                                        ((BoardPacket)reply).SetBoardState(user_board);
-                                        ans = client.CreateMessage();
-                                        reply.PackIntoNetMessage(ans);
-                                        client.SendMessage(ans, NetDeliveryMethod.ReliableOrdered);
+                                        UserGetInitialBoardAndSend((BoardPacket)factory.GetPacketInstance(PacketHeader.BoardPacket), client, this_player);
                                         break;
-                                    case ClientGameStates.WaitForStart when sp.info != "waiting for other user..":
+                                    case ClientGameStates.WaitForStart when sp.info != "Waiting for other player to press start..":
                                         // Ask player to START, pack it and send it
-                                        wait_for_player_start();
-                                        ans = client.CreateMessage();
-                                        factory.GetPacketInstance(PacketHeader.PlayerReady).PackIntoNetMessage(ans);
-                                        client.SendMessage(ans, NetDeliveryMethod.ReliableOrdered);
+                                        UserGetStartSignalAndSend((PlayerReadyPacket)factory.GetPacketInstance(PacketHeader.PlayerReady) , client);
                                         break;
                                     case ClientGameStates.WaitOtherPlayerMove:
                                         game_started = true;

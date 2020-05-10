@@ -6,7 +6,7 @@ namespace CLIClient
 {
     public class ClientBoard : Board 
     {
-        public ClientBoard() 
+        public ClientBoard() : base()
         {
         }
 
@@ -24,9 +24,11 @@ namespace CLIClient
             }
 
             this.State = data.Zip(this.State,
-                (new_id, exsisting_cell) => (exsisting_cell.ToString().CompareTo(new_id) == 0
-                    ? exsisting_cell
-                    : ICellTools.ICellFromString(new_id))).ToArray();
+                (new_id, exsisting_cell) =>
+                    (exsisting_cell == null || exsisting_cell.ToString().CompareTo(new_id) != 0
+                    ? ICellTools.ICellFromString(new_id)
+                    : exsisting_cell)
+                ).ToArray();
             return true;
         }
 
