@@ -22,7 +22,6 @@ namespace GameServer
     {
         public AwaitConnectionState(Game game) : base(game)
         {
-            
             // TODO: ADD "IF DEBUG"
             Console.WriteLine("Enter AwaitConnectionState");
         }
@@ -69,6 +68,7 @@ namespace GameServer
                         game.players.SignOut(message.SenderConnection);
                         // TODO: MAYBE SEND SOME MESSAGE?
                     }
+
                     break;
                 default:
                     break;
@@ -90,7 +90,7 @@ namespace GameServer
         {
             // TODO: ADD "IF DEBUG"
             Console.WriteLine("Enter AwaitBoardInitializationState");
-            
+
             // Send both players a notice to init their boards
             NetOutgoingMessage msg = game.CreateStatusMessage(ClientGameStates.WaitForBoard,
                 "Waiting for players to place their pieces on the board..");
@@ -165,10 +165,9 @@ namespace GameServer
 
         public AwaitPlayerStartState(Game game) : base(game)
         {
-            
             // TODO: ADD "IF DEBUG"
             Console.WriteLine("Enter AwaitPlayerStartState");
-            
+
             // Send both players a notice to press "Start Game"
             NetOutgoingMessage msg =
                 game.CreateStatusMessage(ClientGameStates.WaitForStart, "Waiting both players to press START");
@@ -231,10 +230,9 @@ namespace GameServer
 
         protected WaitMove(Game game, Ownership player) : base(game)
         {
-            
             // TODO: ADD "IF DEBUG"
             Console.WriteLine("Enter WaitMove on {0}", player.ToString());
-            
+
             this.player = player;
 
             game.SendBoardToUsers();
@@ -260,9 +258,8 @@ namespace GameServer
             Packet packet = game.packetfactory.ReadNetMessage(message);
             if (game.players.GetPlayerFromConnection(message.SenderConnection) != this.player)
             {
-                game.server.SendMessage(
-                    game.CreateStatusMessage(ClientGameStates.Error, "Wait for other player to play"),
-                    message.SenderConnection, NetDeliveryMethod.Unknown);
+                var error_message = game.CreateStatusMessage(ClientGameStates.Error, "Wait for other player to play");
+                game.server.SendMessage(error_message, message.SenderConnection, NetDeliveryMethod.ReliableOrdered);
                 return;
             }
 
@@ -375,11 +372,10 @@ namespace GameServer
     {
         public GameOverState(Game game) : base(game)
         {
-            
             // TODO: ADD "IF DEBUG"
             Console.WriteLine("Enter GmaeOverState");
-            
-            
+
+
             var winner = game.board.CheckGameOver();
             if (winner == Ownership.Board) throw new ConstraintException("Can't GameOver from an ongoing game");
             // Greet winner, loser
