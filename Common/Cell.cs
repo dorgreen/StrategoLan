@@ -278,11 +278,6 @@ namespace Common
             this.owner = owner;
         }
 
-        public override Position[] GetValidMoves(CellSampler cs, Position pos)
-        {
-            throw new System.NotImplementedException();
-        }
-
         public override Ownership GetOwnership()
         {
             return this.owner;
@@ -311,7 +306,7 @@ namespace Common
 
         // #TODO: TEST ME 
         // TO BE OVERRIDDEN BY SCOUT TYPE
-        public new Position[] GetValidMoves(CellSampler cs, Position pos)
+        public override Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             var ans = new List<Position>();
             foreach (var d in Enum.GetValues(typeof(Directions)))
@@ -376,7 +371,7 @@ namespace Common
         // can walk howmany empty spots in one direction
         // cannot skip enemies or water pieces
         // can attack an enemy within X empty spaces in one direction 
-        public new Position[] GetValidMoves(CellSampler cs, Position pos)
+        public override Position[] GetValidMoves(CellSampler cs, Position pos)
         {
             var ans = new List<Position>();
             foreach (var d in Enum.GetValues(typeof(Directions)))
