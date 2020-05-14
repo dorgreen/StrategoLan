@@ -42,6 +42,8 @@ namespace Common
         {
             return String.Format("{0},{1}", this.GetType().ToString(), this.GetOwnership().ToString());
         }
+
+        public abstract string ToDisplayString();
     }
 
     public class ICellTools
@@ -237,6 +239,11 @@ namespace Common
         public WaterCell() : base()
         {
         }
+
+        public override string ToDisplayString()
+        {
+            return "WTR";
+        }
     }
 
     public class EmptyCell : StaticPiece
@@ -247,6 +254,11 @@ namespace Common
 
         public EmptyCell() : base()
         {
+        }
+
+        public override string ToDisplayString()
+        {
+            return "EMP";
         }
     }
 
@@ -264,6 +276,11 @@ namespace Common
         public override Ownership GetOwnership()
         {
             return this.owner;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "ENM";
         }
     }
 
@@ -342,6 +359,11 @@ namespace Common
         {
             return Rank.Flag;
         }
+
+        public override string ToDisplayString()
+        {
+            return "FLG";
+        }
     }
 
     public class Spy : MovablePiece
@@ -353,6 +375,11 @@ namespace Common
         public override Rank GetRank()
         {
             return Rank.Spy;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "SPY";
         }
     }
 
@@ -391,6 +418,11 @@ namespace Common
 
             return ans.ToArray();
         }
+
+        public override string ToDisplayString()
+        {
+            return "SCT";
+        }
     }
 
     public class Miner : MovablePiece
@@ -402,6 +434,11 @@ namespace Common
         public override Rank GetRank()
         {
             return Rank.Miner;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "MIN";
         }
     }
 
@@ -415,6 +452,11 @@ namespace Common
         {
             return Rank.Sergeant;
         }
+
+        public override string ToDisplayString()
+        {
+            return "SGT";
+        }
     }
 
     public class Lieutenant : MovablePiece
@@ -426,6 +468,11 @@ namespace Common
         public override Rank GetRank()
         {
             return Rank.Lieutenant;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "LT ";
         }
     }
 
@@ -439,6 +486,11 @@ namespace Common
         {
             return Rank.Captain;
         }
+
+        public override string ToDisplayString()
+        {
+            return "CAP";
+        }
     }
 
     public class Major : MovablePiece
@@ -450,6 +502,11 @@ namespace Common
         public override Rank GetRank()
         {
             return Rank.Major;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "MAJ";
         }
     }
 
@@ -463,6 +520,11 @@ namespace Common
         {
             return Rank.Colonel;
         }
+
+        public override string ToDisplayString()
+        {
+            return "COL";
+        }
     }
 
     public class General : MovablePiece
@@ -474,6 +536,11 @@ namespace Common
         public override Rank GetRank()
         {
             return Rank.General;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "GEN";
         }
     }
 
@@ -487,6 +554,11 @@ namespace Common
         {
             return Rank.Marshal;
         }
+
+        public override string ToDisplayString()
+        {
+            return "MRS";
+        }
     }
 
     public class Bomb : ImmovablePiece
@@ -498,6 +570,11 @@ namespace Common
         public override Rank GetRank()
         {
             return Rank.Bomb;
+        }
+
+        public override string ToDisplayString()
+        {
+            return "BMB";
         }
     }
 }

@@ -31,11 +31,5 @@ namespace CLIClient
                 ).ToArray();
             return true;
         }
-
-        // TODO: print board a little bit more nicely
-        public void PrintBoard()
-        {
-            Console.WriteLine(State.ToString());
-        }
     }
 }

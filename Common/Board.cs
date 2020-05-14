@@ -1,8 +1,8 @@
 using System;
 using System.Collections.Generic;
-using System.ComponentModel.Design;
 using System.Linq;
-using System.Xml.Schema;
+using Console = Colorful.Console;
+using System.Drawing;
 
 namespace Common
 {
@@ -82,6 +82,66 @@ namespace Common
             }
 
             return attacker.GetValidMoves(this, start).Contains(end);
+        }
+
+        public static Color OwnershipToColor(Ownership owner)
+        {
+            switch (owner)
+            {
+                case Ownership.Board:
+                    return Color.Gray;
+                case Ownership.FirstPlayer:
+                    return Color.Tomato;
+                case Ownership.SecondPlayer:
+                    return Color.DodgerBlue;
+                default:
+                    return Color.White;
+            }
+        }
+
+        public static void CellFormaterPrinter(ICell cell)
+        {
+            //Console.Write("| ",);
+            //Drawing.Color slateBlue = Color.FromName("SlateBlue");
+            Console.Write("| ");
+            Console.Write("{0}", cell.ToDisplayString(), OwnershipToColor(cell.GetOwnership()));
+        }
+        
+        public void PrintBoard()
+        {
+            // Rows from 1 to 10
+            // Columns from A to K
+            // Each item is 3 chars, surrounded by "|" on either side
+            // Color is given by Ownership: Gray for Board, Red for FirstPlayer, Blue for SecondPlayer
+            // Due to print order, we first print the LAST rows going down
+            Console.BackgroundColor = Color.Black;
+            Console.ForegroundColor = Color.Bisque;
+            var reverse_list = this.State.Reverse();
+            for (int RowIndex = 10; RowIndex > 0; RowIndex--)
+            {
+                Console.WriteLine();
+                // Print row number
+                Console.Write(String.Format("{0}  ", RowIndex).Substring(0, 3));
+                // Print the whole row, color-coded
+                var row_enum = reverse_list.Skip(DefaultBoardSize-RowIndex).Take(DefaultBoardSize).Reverse();
+                row_enum.Select(cell =>
+                {
+                    CellFormaterPrinter(cell);
+                    return true;
+                });
+                Console.Write("|");
+            }
+            
+            // Print the lower Column designations
+            Console.Write("   ");
+            for (char col_index = 'A'; col_index < 'K'; col_index++)
+            {
+                Console.Write("  {0}  ", col_index);
+            }
+            Console.WriteLine();
+            
+            Console.WriteLine("- - - - - - - - - - ");
+            
         }
 
 
