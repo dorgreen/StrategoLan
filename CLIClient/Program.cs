@@ -11,10 +11,11 @@ namespace CLIClient
         // currently returns a dummy made-in-advance board config
         public static ICell[] GetUserBoard(Ownership player)
         {
-            
+            char input = ' ';
             Console.WriteLine("Press 'Q' to send default board");
-            while (Console.ReadKey().KeyChar != 'q')
+            while ((input = Console.ReadKey().KeyChar) != 'q')
             {
+                Console.WriteLine("Press 'Q' to send default board. Input: {0}", input);
             }
             
             var ans = Board.GetDefaultPieces(player).ToArray();
@@ -104,7 +105,10 @@ namespace CLIClient
             Console.WriteLine("Connected!");
             
             var board = new ClientBoard();
+            // is able to recycle incomming packets
             var factory = new PacketFactoryFlyWheel();
+            // basic factory creating outgoing packets without any recycling (thread-safe)
+            var static_packet_factory = new StaticPacketFactory();
             NetIncomingMessage message;
             var game_started = false;
             Ownership this_player = Ownership.Board;
@@ -168,7 +172,7 @@ namespace CLIClient
                                     case ClientGameStates.Error when sp.info == "Invalid move. try again":
                                         game_started = true;
                                         // Ask player for move and pack it in a packet to send
-                                        UserGetMoveAndSend((AttemptMovePacket)factory.GetPacketInstance(PacketHeader.AttemptMovePacket),
+                                        UserGetMoveAndSend((AttemptMovePacket)static_packet_factory.GetPacketInstance(PacketHeader.AttemptMovePacket),
                                             client);
                                         break;
                                     case ClientGameStates.Error when sp.info == "Starting game..":
@@ -180,11 +184,11 @@ namespace CLIClient
                                     case ClientGameStates.Error
                                         when sp.info == "Unexpected packet. Waiting for user to send board":
                                         // Ask player to select initial location, pack it and send it
-                                        UserGetInitialBoardAndSend((BoardPacket)factory.GetPacketInstance(PacketHeader.BoardPacket), client, this_player);
+                                        UserGetInitialBoardAndSend((BoardPacket)static_packet_factory.GetPacketInstance(PacketHeader.BoardPacket), client, this_player);
                                         break;
                                     case ClientGameStates.WaitForStart when sp.info != "Waiting for other player to press start..":
                                         // Ask player to START, pack it and send it
-                                        UserGetStartSignalAndSend((PlayerReadyPacket)factory.GetPacketInstance(PacketHeader.PlayerReady) , client);
+                                        UserGetStartSignalAndSend((PlayerReadyPacket)static_packet_factory.GetPacketInstance(PacketHeader.PlayerReady) , client);
                                         break;
                                     case ClientGameStates.WaitOtherPlayerMove:
                                         game_started = true;
